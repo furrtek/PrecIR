@@ -223,8 +223,7 @@ for fr in frames:
     ba.append(data_size)
     ba.append(repeats)
     for b in range(0, len(fr) - 1):
-        ba.append(0x80 + (fr[b] >> 4))
-        ba.append(0x80 + (fr[b] & 15))
+        ba.append(fr[b])
     ser.write(ba)
     ser.flush()
     ser.read_until('A')

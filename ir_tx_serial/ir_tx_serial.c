@@ -14,9 +14,6 @@
 // There's a ~50ms timeout/reset on the serial data
 // So the program returns to idle state if the serial stream is interrupted
 
-// The stupid 1-byte-as-pair-of-nibbles-in-2-bytes UART scheme is to avoid some Windows software
-// thinking 0x00 means "end of tx buffer". Doesn't impact speed very much, as frames aren't long
-
 #define F_CPU 10000000
 
 #include <avr/io.h>
@@ -24,7 +21,7 @@
 #include <inttypes.h>
 #include <avr/interrupt.h>
 
-volatile uint8_t do_tx = 0, put_nibble = 0, put_index = 0, data_size = 0, repeat = 0, rxstate = 0;
+volatile uint8_t do_tx = 0, put_index = 0, data_size = 0, repeat = 0, rxstate = 0;
 volatile uint8_t buffer[100];
 
 #define NOP __asm__ __volatile__ ("nop")
@@ -118,7 +115,6 @@ void tx() {
 	UDR = 'A';
 	
 	put_index = 0;
-	put_nibble = 0;
 	data_size = 0;
 	do_tx = 0;
 }
@@ -127,7 +123,6 @@ ISR(TIMER1_COMPA_vect) {
 	// Timer 1 OVF resets the buffer pointer
 	if (!do_tx) {
 		put_index = 0;
-		put_nibble = 0;
 		data_size = 0;
 	}
 }
@@ -141,23 +136,16 @@ ISR(USART_RX_vect) {
 		rxstate = 0;
 	} else {
 		if (!rxstate) {
-			// Second byte is repeat count
+			// Second byte is repeat count (really transmit count, as 0 won't transmit)
 			repeat = UDR;
 			rxstate = 1;
 		} else {
 			if (put_index < 100) {
-				if (!(put_nibble & 1)) {
-					// Even nibbles are MSBs
-					buffer[put_index] = (UDR & 0x0F) << 4;
-				} else {
-					// Odd nibbles are LSBs
-					buffer[put_index] |= (UDR & 0x0F);
-					put_index++;
-					// Trigger IR tx when all bytes are received
-					if (put_index == data_size)
-						do_tx = 1;
-				}
-				put_nibble++;
+				buffer[put_index] = UDR;
+				put_index++;
+				// Trigger IR tx when all bytes are received
+				if (put_index == data_size)
+					do_tx = 1;
 			}
 		}
 	}
