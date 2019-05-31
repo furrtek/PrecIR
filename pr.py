@@ -2,8 +2,6 @@
 # 2018 furrtek - furrtek.org
 # See LICENSE
 
-import serial
-
 def terminate_frame(frame, repeats):
     # Compute whole frame's CRC16
     result = 0x8408
@@ -20,7 +18,7 @@ def terminate_frame(frame, repeats):
 
     frame.append(result & 255)
     frame.append((result / 256) & 255)
-    frame.append(repeats & 255)     # This is used internally, it's not part of the transmitted data
+    frame.append(repeats & 255)     # This is used by the transmitter, it's not part of the transmitted data
 
 def make_raw_frame(PLID, cmd):
     frame = [0x85, PLID[3], PLID[2], PLID[1], PLID[0], cmd]
@@ -62,25 +60,3 @@ def make_refresh_frame(PLID):
         frame.append(0x00)
     terminate_frame(frame, 1)
     return frame
-
-def transmit_frames(frames, port):
-    ser = serial.Serial(port, 57600, timeout = 5)    # 5s timeout for read
-    ser.reset_input_buffer()
-    frame_count = len(frames)
-    i = 1
-    for fr in frames:
-        data_size = len(fr) - 1
-        repeats = fr[-1]
-        print("Transmitting frame %u/%u, length %u, repeated %u times." % (i, frame_count, data_size, repeats))
-    
-        ba = bytearray()
-        ba.append(data_size)
-        ba.append(repeats)
-        for b in range(0, len(fr) - 1):
-            ba.append(fr[b])
-        ser.write(ba)
-        ser.flush()
-        ser.read_until('A')
-        i += 1
-    
-    ser.close()

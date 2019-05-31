@@ -3,6 +3,7 @@
 # See LICENSE
 
 import pr
+import tx
 from imageio import imread
 import sys
 
@@ -19,24 +20,33 @@ def record_run(run_count):
         compressed.extend(bits)
 
 def usage():
+    print("img2dm - Transmits image to Dot Matrix ESL\n")
     print("Usage:")
-    print("img2dm.py port image barcode page (x y)")
-    print("  port: serial port")
+    print("img2dm.py port image barcode page (x y)\n")
+    print("  port: serial port name (0 for ESL Blaster)")
     print("  image: image file")
     print("  barcode: 17-character barcode data")
     print("  page: page number to update (0~15)")
-    print("  x y: top-left position of image")
+    print("  x y: top-left position of image, default: 0 0")
     exit()
 
 arg_count = len(sys.argv)
 if arg_count < 5:
     usage()
 
+port = sys.argv[1]
+
+# Search for connected ESL Blaster if required
+if (port == "0"):
+    blaster_port = tx.search_esl_blaster()
+    if (blaster_port == "0"):
+        exit()
+
 # Open image file
 image = imread(sys.argv[2])
 width = image.shape[1]
 height = image.shape[0]
-if width != 208 or height != 112:
+if width > 208 or height > 112:
     print("Image should be 208*112 pixels or less.")
     exit()
 
@@ -95,7 +105,7 @@ if size_compressed < size_raw:
     data = compressed
     compression_type = 2
 else:
-    print("Compression ratio suxx, using raw mode")
+    print("Compression ratio suxx, using raw data")
     data = pixels
     compression_type = 0
 
@@ -161,5 +171,8 @@ frames.append(pr.make_refresh_frame(PLID))
 #exit()
 
 # Send data to IR transmitter
-pr.transmit_frames(frames, sys.argv[1])
+if (port == "0"):
+    tx.transmit_esl_blaster(frames, blaster_port)
+else:
+    tx.transmit_serial(frames, port)
 print("Done. Please allow a few seconds for the ESL to refresh.")
