@@ -26,7 +26,7 @@ volatile uint32_t SymbolCounter;
 volatile uint32_t TickCounter, Burst, Repeats, ErrorAcc;
 volatile uint8_t SendOperationReady = 0, CurrentByte, Symbol;
 volatile const uint8_t * FrameData;
-volatile uint32_t comm_reset_flag = 0;
+volatile uint32_t comm_reset_flag = 0, ram_frame_repeat_delay = 0;
 
 /*
 static const uint8_t frame_wakeup[30] = {
@@ -94,7 +94,7 @@ void TIM16_IRQHandler(void) {
 						ByteSentCounter = 0;
 						SymbolCounter = 0;
 						ErrorAcc = 0;
-						TickCounter = 2000;
+						TickCounter = ram_frame_repeat_delay * 50;	//2000;
 					} else {
 						SendOperationReady = 0;
 						// RED LED OFF
@@ -141,6 +141,7 @@ int main(void) {
 	enum comm_states {
 		STATE_IDLE,
 		STATE_GET_FRAME_SIZE,
+		STATE_GET_FRAME_REPEAT_DELAY,
 		STATE_GET_FRAME_REPEATS,
 		STATE_GET_FRAME_DATA
 	};
@@ -268,6 +269,9 @@ int main(void) {
 				}
 			} else if (comm_state == STATE_GET_FRAME_SIZE) {
 				ram_frame_size = byte;
+				comm_state = STATE_GET_FRAME_REPEAT_DELAY;
+			} else if (comm_state == STATE_GET_FRAME_REPEAT_DELAY) {
+				ram_frame_repeat_delay = byte;
 				comm_state = STATE_GET_FRAME_REPEATS;
 			} else if (comm_state == STATE_GET_FRAME_REPEATS) {
 				ram_frame_repeats = byte;

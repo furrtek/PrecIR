@@ -62,6 +62,7 @@ def transmit_esl_blaster(frames, port):
         ba = bytearray()
         ba.append('L')
         ba.append(data_size)
+        ba.append(40)   # 40*50 = 2000 timer ticks between repeats
         ba.append(repeats)
         for b in range(0, len(fr) - 1):
             ba.append(fr[b])
