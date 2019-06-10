@@ -10,7 +10,7 @@ def search_esl_blaster():
         comport = "COM" + str(n)
         try:
             ser = serial.Serial(comport, 57600, timeout = 1)    # 1s timeout for read
-            ser.write('?')
+            ser.write(str.encode('?'))
             ser.flush()
             test = len(ser.read_until("ESLBlaster"))
             ser.close()
