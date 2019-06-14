@@ -36,9 +36,9 @@ static const uint8_t USBD_MANUFACTURER_STRING_DATA[] = {
 	"\x28\x03" "F\0u\0r\0r\0t\0e\0k\0 \0e\0n\0g\0i\0n\0e\0e\0r\0i\0n\0g\0"
 };
 
-//#define USBD_PRODUCT_STRING_FS "ESL Blaster Rev. A"
+//#define USBD_PRODUCT_STRING_FS "ESL Blaster Rev. B"
 static const uint8_t USBD_PRODUCT_STRING_DATA[] = {
-	"\x26\x03" "E\0S\0L\0 \0B\0l\0a\0s\0t\0e\0r\0 \0R\0e\0v\0.\0 \0A\0"
+	"\x26\x03" "E\0S\0L\0 \0B\0l\0a\0s\0t\0e\0r\0 \0R\0e\0v\0.\0 \0B\0"
 };
 
 //#define USBD_CONFIGURATION_STRING_F "CDC Config"

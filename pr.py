@@ -17,8 +17,9 @@ def terminate_frame(frame, repeats):
                 result >>= 1
 
     frame.append(result & 255)
-    frame.append((result / 256) & 255)
-    frame.append(repeats & 255)     # This is used by the transmitter, it's not part of the transmitted data
+    frame.append((result // 256) & 255)
+    frame.append(repeats & 255)             # This is used by the transmitter, it's not part of the transmitted data
+    frame.append((repeats // 256) & 255)    # This is used by the transmitter, it's not part of the transmitted data
 
 def make_raw_frame(PLID, cmd):
     frame = [0x85, PLID[3], PLID[2], PLID[1], PLID[0], cmd]
@@ -29,7 +30,7 @@ def make_mcu_frame(PLID, cmd):
     return frame
 
 def append_word(frame, value):
-    frame.append(value / 256)
+    frame.append(value // 256)
     frame.append(value & 255)
     
 def get_plid(barcode):
@@ -44,7 +45,7 @@ def get_plid(barcode):
     return PLID
 
 def make_ping_frame(PLID, repeats):
-    frame = make_raw_frame(PLID, 0x97)
+    frame = make_raw_frame(PLID, 0x17)
     frame.append(0x01)
     frame.append(0x00)
     frame.append(0x00)

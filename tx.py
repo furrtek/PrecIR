@@ -6,11 +6,11 @@ import serial
 
 def search_esl_blaster():
     found = 0
-    for n in range(1, 11):
+    for n in range(1, 20):
         comport = "COM" + str(n)
         try:
             ser = serial.Serial(comport, 57600, timeout = 1)    # 1s timeout for read
-            ser.write(str.encode('?'))
+            ser.write("?".encode())
             ser.flush()
             test = len(ser.read_until("ESLBlaster"))
             ser.close()
@@ -34,7 +34,9 @@ def transmit_serial(frames, port):
     i = 1
     for fr in frames:
         data_size = len(fr) - 1
-        repeats = fr[-1]
+        repeats = fr[-2] + (fr[-1] * 256)
+        if repeats > 255:
+            repeats = 255
         print("Transmitting frame %u/%u, length %u, repeated %u times." % (i, frame_count, data_size, repeats))
     
         ba = bytearray()
@@ -55,21 +57,22 @@ def transmit_esl_blaster(frames, port):
     frame_count = len(frames)
     i = 1
     for fr in frames:
-        data_size = len(fr) - 1
-        repeats = fr[-1]
+        data_size = len(fr) - 2
+        repeats = fr[-2] + (fr[-1] * 256)
         print("Transmitting frame %u/%u, length %u, repeated %u times." % (i, frame_count, data_size, repeats))
-    
+
         ba = bytearray()
         ba.append('L')
         ba.append(data_size)
-        ba.append(40)   # 40*50 = 2000 timer ticks between repeats
-        ba.append(repeats)
-        for b in range(0, len(fr) - 1):
+        ba.append(30)   # 30*50 = 1500 timer ticks between repeats
+        ba.append(repeats & 255)
+        ba.append((repeats // 256) & 255)
+        for b in range(0, len(fr) - 2):
             ba.append(fr[b])
         ba.append('T')
         ser.write(ba)
         ser.flush()
-        ser.read_until('A')
+        ser.read_until('K')
         i += 1
     
     ser.close()

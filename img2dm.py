@@ -117,18 +117,18 @@ for b in range(0, padding):
     data.append(0)
 
 padded_data_size = len(data)
-frame_count = padded_data_size / bits_per_frame
+frame_count = padded_data_size // bits_per_frame
 
 frames = []
 
 # Ping frame
-frames.append(pr.make_ping_frame(PLID, 150))
+frames.append(pr.make_ping_frame(PLID, 400))
 
 print("Generating %i data frames..." % frame_count)
 
 # Parameters frame
 frame = pr.make_mcu_frame(PLID, 0x05)
-pr.append_word(frame, data_size / 8)    # Byte count
+pr.append_word(frame, data_size // 8)   # Byte count
 frame.append(0x00)                      # Unused
 frame.append(compression_type)
 frame.append(page)

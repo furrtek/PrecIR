@@ -62,6 +62,7 @@ _Min_Stack_Size = 0x400;	/* required amount of stack */
 MEMORY
 {
     FLASH	(rx)	: ORIGIN = 0x8000000,	LENGTH = 32K
+    FLASH_USER	(rw)	: ORIGIN = 0x8007C00,	LENGTH = 1K
     RAM	(rwx)	: ORIGIN = 0x20000000,	LENGTH = 6K
 }
 
@@ -92,6 +93,11 @@ SECTIONS
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
+
+  .flash_data_array (NOLOAD) :
+  {
+    . = ALIGN(4);
+  } >FLASH_USER
 
   /* Constant data into "FLASH" Rom type memory */
   .rodata :
