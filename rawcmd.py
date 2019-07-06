@@ -3,18 +3,20 @@
 # See LICENSE
 
 import pr
+import tx
 import sys
 
 def usage():
     print("Usage:")
-    print("rawcmd.py port barcode hex count\n")
+    print("rawcmd.py port barcode type hex count\n")
     print("  port: serial port name (0 for ESL Blaster)")
     print("  barcode: 17-character barcode data, or 0")
+    print("  type: DM for graphic ESL, SEG for segment")
     print("  hex: frame data as hex string without CRC")
     print("  count: number of times the frame is transmitted")
     exit()
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 6:
     usage()
 
 port = sys.argv[1]
@@ -28,13 +30,13 @@ if (port == "0"):
 # Get PLID from barcode string
 PLID = pr.get_plid(sys.argv[2])
 
-ba = bytearray.fromhex(sys.argv[3])
+ba = bytearray.fromhex(sys.argv[4])
 
 frames = []
 
-frame = pr.make_raw_frame(PLID, ba[0])
+frame = pr.make_raw_frame(0x85 if (sys.argv[3] == "DM") else 0x84, PLID, ba[0])
 frame.extend(ba[1:])
-pr.terminate_frame(frame, int(sys.argv[4]))
+pr.terminate_frame(frame, int(sys.argv[5]))
 frames.append(frame)
 
 # DEBUG

@@ -1,13 +1,14 @@
 // Serial IR transmitter ;-)
 // furrtek 2018
 // ATTiny2313 10MHz 3.3V
+// Low fuse: 0xCE
+// High fuse: 0xDB
 // Uses UART RX/TX 57600bps 8N1, IR out on PB2 (OC0A)
 
 // The serial protocol is:
 // (byte) data size (in bytes, max 100)
 // (byte) repeat count
-// Data bytes 0bAABBCCDD as pair of bytes in the form 0bxxxxAABB 0bxxxxCCDD
-// Transmission will be done right to left (DD to AA)
+// Data bytes...
 // Transmission begins as soon as the last data byte is received
 // Once done, the MCU replies with character 'A'
 
@@ -171,7 +172,7 @@ int main(void) {
 	TCCR0A = 0b00000010;			// Timer 0 CTC mode, output OFF
 	TCCR0B = 0b00000001;			// Timer 0 On
 
-	OCR1A = 2000;					// ~50ms timeout
+	OCR1A = 4000;					// ~100ms timeout
 	TCCR1A = 0b00000000;
 	TCCR1B = 0b00001100;			// Prescaler = 256
 	TIMSK = 0b01000000;				// Timer 1 OCIE1A interrupt

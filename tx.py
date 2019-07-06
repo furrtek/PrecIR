@@ -28,12 +28,12 @@ def search_esl_blaster():
         return comport
 
 def transmit_serial(frames, port):
-    ser = serial.Serial(port, 57600, timeout = 5)    # 5s timeout for read
+    ser = serial.Serial(port, 57600, timeout = 10)    # 10s timeout for read
     ser.reset_input_buffer()
     frame_count = len(frames)
     i = 1
     for fr in frames:
-        data_size = len(fr) - 1
+        data_size = len(fr) - 2
         repeats = fr[-2] + (fr[-1] * 256)
         if repeats > 255:
             repeats = 255
@@ -42,17 +42,18 @@ def transmit_serial(frames, port):
         ba = bytearray()
         ba.append(data_size)
         ba.append(repeats)
-        for b in range(0, len(fr) - 1):
+        for b in range(0, data_size):
             ba.append(fr[b])
+
         ser.write(ba)
         ser.flush()
         ser.read_until('A')
         i += 1
-    
+
     ser.close()
 
 def transmit_esl_blaster(frames, port):
-    ser = serial.Serial(port, 57600, timeout = 5)    # 5s timeout for read
+    ser = serial.Serial(port, 57600, timeout = 10)    # 10s timeout for read
     ser.reset_input_buffer()
     frame_count = len(frames)
     i = 1
