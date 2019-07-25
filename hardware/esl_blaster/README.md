@@ -23,3 +23,15 @@ Don't forget to disconnect the pads once done.
 
 Disconnect the two solder pads next to the push-button to disable the charging circuit:
 ![ESL Blaster charger pads](jp_charge.png)
+
+## Protocol info
+
+This is the top-level serial protocol info to communicate with the ESL Blaster, not the ESL IR protocol itself.
+
+Commands are a single character (byte):
+* `?`: Ask for ID string. Replies with `ESLBlasterXY`. X is the hardware revision (B), Y is the firmware version (0).
+* `L`: Load frame data. Format: `LsdrRx...`. s: frame size in bytes. d: delay between repeats. r: repeat count low byte. R: repeat count high byte. x: frame data...
+* `T`: Transmit loaded frame. Returns `K` when done.
+* `S`: Emergency stop. Stops any IR transmit operation.
+* `W`: Start user flash write sequence. Send 1024 bytes in 128 byte blocks, wait for `K` (ok) or `N` (error) reply after each block, and one last reply for program ok/fail.
+* `R`: Read user flash (starts at 0x8007C00). Replies with 512 bytes.

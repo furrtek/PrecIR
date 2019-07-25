@@ -19,7 +19,7 @@ See http://furrtek.free.fr/index.php?a=esl for more details.
 
 ***What can this be used for ?***
 
-To have fun experimenting with mass produced hardware ! Compatible ESLs can be found on eBay, or sometimes from stores directly if dumpster diving is your thing.
+To have fun experimenting with mass produced devices ! Compatible ESLs can be found on eBay, or sometimes from stores directly if dumpster diving is your thing.
 
 The e-paper ones make cool badges :)
 
@@ -27,7 +27,7 @@ The e-paper ones make cool badges :)
 
 ***Which brands of ESLs are compatible ?***
 
-You'll have to guess. Hint: there's only one.
+You'll have to guess from the picture. Hint: there's only one.
 
 ***Can my phone/tablet/handheld/IrDA-capable device work as a transmitter ?***
 
@@ -41,4 +41,4 @@ No. For two reasons:
 
 ***Is possession and use of such devices legal ?***
 
-There's no cracking, exploit, patent or copyright infrigement going on so IMO it's safe to assume this is perfectly legal. Just don't try changing price displays so you can get discounts, the price in the store's database obviously remains unaffected so you'll end up having to pay the correct price anyways.
+There's no cracking, exploit, patent or copyright infrigement going on so IMO it's safe to assume this is perfectly legal. Just don't try changing price displays so you can get discounts, the price in the store's database obviously remains unchanged so you'll end up having to pay the correct price anyways.

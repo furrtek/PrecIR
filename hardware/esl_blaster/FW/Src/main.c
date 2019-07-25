@@ -359,7 +359,6 @@ int main(void) {
 				comm_state = STATE_GET_FRAME_DATA;
 			} else if (comm_state == STATE_GET_FRAME_DATA) {
 				ram_frame_data[ram_frame_data_counter++] = byte;
-				if (byte == 0x85) for(;;) {}
 				if (ram_frame_data_counter == ram_frame_size)
 					comm_state = STATE_IDLE;
 			} else if (comm_state == STATE_FLASH_LOAD) {
