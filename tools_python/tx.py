@@ -21,7 +21,7 @@ def search_esl_blaster():
             else:
                 print("Timeout on " + comport)
         except serial.SerialException:
-            print("SerialException on " + comport)
+            #print("SerialException on " + comport)
             continue
 
     if (found == 0):

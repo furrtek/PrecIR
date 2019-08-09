@@ -2,12 +2,11 @@
 # 2018 furrtek - furrtek.org
 # See LICENSE
 
-def terminate_frame(frame, repeats):
-    # Compute whole frame's CRC16
+def crc16(data):
     result = 0x8408
     poly = 0x8408
 
-    for by in frame:
+    for by in data:
         result ^= by
         for bi in range(0, 8):
             if (result & 1):
@@ -16,8 +15,12 @@ def terminate_frame(frame, repeats):
             else:
                 result >>= 1
 
-    frame.append(result & 255)
-    frame.append((result // 256) & 255)
+    return result
+
+def terminate_frame(frame, repeats):
+    crc = crc16(frame)
+    frame.append(crc & 255)
+    frame.append((crc // 256) & 255)
     frame.append(repeats & 255)             # This is used by the transmitter, it's not part of the transmitted data
     frame.append((repeats // 256) & 255)    # This is used by the transmitter, it's not part of the transmitted data
 
