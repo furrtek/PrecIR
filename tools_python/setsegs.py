@@ -37,7 +37,7 @@ frames = []
 
 # Update page command + data
 payload = [0xBA, 0x00, 0x00, 0x00]
-payload.extend(bitmap[1:])
+payload.extend(bitmap)
 # Segment bitmap has its own CRC16
 segcrc = pr.crc16(bitmap)
 payload.append(segcrc & 255)
@@ -49,8 +49,6 @@ frame = pr.make_raw_frame(0x84, PLID, payload[0])
 frame.extend(payload[1:])
 pr.terminate_frame(frame, 100)
 frames.append(frame)
-
-print(frame)
 
 # DEBUG
 #f = open("out.txt", "w")
