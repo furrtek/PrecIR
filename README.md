@@ -11,11 +11,11 @@ See http://furrtek.free.fr/index.php?a=esl for more details.
 
 ## Tools
 
-Use Python 2. Python 3 may work but Pyserial isn't happy in some cases.
-
 * img2dm.py: Sends an image to a dot matrix ESL. Run without parameters for usage.
 * rawcmd.py: Send arbitrary data to ESL.
 * flashtest.py: Test tool to program remote control frame in ESL Blaster (more work needed...).
+
+* vb6: Windows GUI client and VB6 source (sorry).
 
 ## FAQ
 
