@@ -12,16 +12,16 @@ def search_esl_blaster():
             ser = serial.Serial(comport, 57600, timeout = 1)    # 1s timeout for read
             ser.write("?".encode())
             ser.flush()
-            test = len(ser.read_until("ESLBlaster"))
+            test = ser.read_until("ESLBlaster")
             ser.close()
-            if (test == 10):
+            if (len(test) >= 10):
                 print("Found ESL Blaster on " + comport)
                 found = 1
                 break
             else:
-                print("Timeout on " + comport)
+            	print("Timeout on " + comport)
         except serial.SerialException:
-            #print("SerialException on " + comport)
+            #print("SerialException on " + comport)	# Debug
             continue
 
     if (found == 0):
@@ -60,23 +60,33 @@ def transmit_esl_blaster(frames, port):
     ser.reset_input_buffer()
     frame_count = len(frames)
     i = 1
+    
+    # DEBUG
+    #f = open("out_bin.txt", "w")
+
     for fr in frames:
         data_size = len(fr) - 2
         repeats = fr[-2] + (fr[-1] * 256)
         print("Transmitting frame %u/%u, length %u, repeated %u times." % (i, frame_count, data_size, repeats))
 
         ba = bytearray()
-        ba.append('L')
+        ba.append(76)	# 'L'
         ba.append(data_size)
         ba.append(30)   # 30*50 = 1500 timer ticks between repeats
         ba.append(repeats & 255)
         ba.append((repeats // 256) & 255)
         for b in range(0, len(fr) - 2):
             ba.append(fr[b])
-        ba.append('T')
+        ba.append(84)	# 'T'
+
+        # DEBUG
+        #for b in ba:
+        #    f.write(format(b, '02X') + " ")
+        #f.write("\n")
+
         ser.write(ba)
         ser.flush()
-        ser.read_until('K')
+        ser.read_until(b'K')
         i += 1
-    
+
     ser.close()
