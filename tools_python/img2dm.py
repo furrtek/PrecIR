@@ -14,9 +14,9 @@ def image_convert(image, color_pass):
 	pixels = []
 	for row in image:
 		for rgb in row:
-			luma = 0.21 * rgb[0] + 0.72 * rgb[1] + 0.07 * rgb[2]
+			luma = (0.21 * rgb[0] + 0.72 * rgb[1] + 0.07 * rgb[2]) / 255
 			if color_pass:
-				pixels.append(0 if luma >= 0.33 and luma < 0.66 else 1)	# 0 codes color (anything mid grey)
+				pixels.append(0 if luma >= 0.1 and luma < 0.9 else 1)	# 0 codes color (anything mid grey)
 			else:
 				pixels.append(0 if luma < 0.5 else 1)	# 0 codes black
 	        	
