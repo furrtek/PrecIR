@@ -4,6 +4,8 @@ Collection of tools, their source code and design files for communicating with *
 
 See http://furrtek.free.fr/index.php?a=esl for more details.
 
+Thanks to @david4599 for infos about color tags.
+
 ## Hardware
 
 * ir_tx_serial: Simple DIY serial port transmitter, using an USB-serial cable.

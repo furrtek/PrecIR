@@ -48,7 +48,7 @@ def get_plid(barcode):
     return PLID
 
 def make_ping_frame(PLID, repeats):
-    frame = make_raw_frame(0x85, PLID, 0x17)
+    frame = make_raw_frame(0x85, PLID, 0x17)	# 0x97 ?
     frame.append(0x01)
     frame.append(0x00)
     frame.append(0x00)
