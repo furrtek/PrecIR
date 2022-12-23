@@ -34,6 +34,7 @@ This is the top-level serial protocol info to communicate with the ESL Blaster, 
 Commands are a single character (byte):
 * `?`: Ask for ID string. Replies with `ESLBlasterXY`. X is the hardware revision (B), Y is the firmware version minus 1 (currently 0 or 1).
 * `L`: Load frame data. Format: `LsdrRx...`. s: frame size in bytes. d: delay between repeats. r: repeat count low byte. R: repeat count high byte. x: frame data...
+  * In FW02, the highest bit of R is used to indicate PP16 transmission. Repeat max count is therefore reduced to 32767 instead of 65535.
 * `T`: Transmit loaded frame. Returns `K` when done.
 * `S`: Emergency stop. Stops any IR transmit operation.
 * `W`: Start user flash write sequence. Send 1024 bytes in 128 byte blocks, wait for `K` (ok) or `N` (error) reply after each block, and one last reply for program ok/fail.
