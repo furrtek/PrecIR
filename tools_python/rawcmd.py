@@ -2,6 +2,8 @@
 # 2018 furrtek - furrtek.org
 # See LICENSE
 
+# 85 06 C9 00 00 00 00: Blink green LED DM
+
 import pr
 import tx
 import sys
@@ -12,7 +14,7 @@ def usage():
     print("  port: serial port name (0 for ESL Blaster)")
     print("  barcode: 17-character barcode data, or 0")
     print("  type: DM for graphic ESL, SEG for segment")
-    print("  hex: frame data as hex string without CRC")
+    print("  hex: frame data as hex string without first byte and CRC")
     print("  count: number of times the frame is transmitted")
     exit()
 
@@ -40,12 +42,11 @@ pr.terminate_frame(frame, int(sys.argv[5]))
 frames.append(frame)
 
 # DEBUG
-#f = open("out.txt", "w")
-#for fr in frames:
-#    for b in fr:
-#        f.write(format(b, '02X') + " ")
-#    f.write("\n")
-#exit()
+f = open("frames.txt", "w")
+for fr in frames:
+    for b in fr:
+        f.write(format(b, '02X') + " ")
+    f.write("\n")
 
 # Send data to IR transmitter
 if (port == "0"):

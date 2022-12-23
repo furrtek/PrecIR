@@ -37,13 +37,14 @@ def record_run(run_count):
 def usage():
     print("img2dm - Transmits image to Dot Matrix ESL\n")
     print("Usage:")
-    print("img2dm.py port image barcode (page color x y)\n")
+    print("img2dm.py port image barcode (page color x y pp4)\n")
     print("  port: serial port name (0 for ESL Blaster)")
     print("  image: image file")
     print("  barcode: 17-character barcode data")
     print("  page: page number to update (0~15), default: 0")
     print("  color: 0:Black and white only, 1:Color-capable ESL, default: 0")
     print("  x y: top-left position of image, default: 0 0")
+    print("  pp4: force slow PP4 protocol, default: 0")
     exit()
 
 arg_count = len(sys.argv)
@@ -56,15 +57,18 @@ if arg_count >= 5:
 	    print("Page must be between 0 and 15.")
 	    exit()
 else:
-	page = 0
+	page = 1
 
 port = sys.argv[1]
+pp16 = 0
 
 # Search for connected ESL Blaster if required
 if (port == "0"):
-    blaster_port = tx.search_esl_blaster()
-    if (blaster_port == "0"):
+    blaster_info = tx.search_esl_blaster()
+    if blaster_info[0] == False:
         exit()
+    if blaster_info[2] == 1:
+    	pp16 = 1	# ESL Blaster FW V2 is PP16 compatible
 
 # Open image file
 image = imread(sys.argv[2])
@@ -79,6 +83,9 @@ PLID = pr.get_plid(sys.argv[3])
 color_mode = int(sys.argv[5]) if arg_count >= 6 else 0
 pos_x = int(sys.argv[6]) if arg_count >= 7 else 0
 pos_y = int(sys.argv[7]) if arg_count >= 8 else 0
+if arg_count >= 9:
+	if int(sys.argv[8]):
+		pp16 = 0
 
 # First pass for black and white
 pixels = image_convert(image, 0)
@@ -137,7 +144,7 @@ print("Data size: %i (%i frames)" % (data_size, frame_count))
 frames = []
 
 # Wake-up ping frame
-frames.append(pr.make_ping_frame(PLID, 400))
+frames.append(pr.make_ping_frame(PLID, pp16, 400))
 
 print("Generating frames...")
 
@@ -155,7 +162,7 @@ pr.append_word(frame, 0x0000)   # Keycode
 frame.append(0x88)              # 0x80 = update, 0x08 = set base page
 pr.append_word(frame, 0x0000)   # Enabled pages (bitmap)
 frame.extend([0x00, 0x00, 0x00, 0x00])
-pr.terminate_frame(frame, 1)
+pr.terminate_frame(frame, pp16, 1)
 frames.append(frame)
 
 # Data frames
@@ -171,11 +178,11 @@ for fr in range(0, frame_count):
             v += data[i + bi]
         frame.append(v)
         i += 8
-    pr.terminate_frame(frame, 1)
+    pr.terminate_frame(frame, pp16, 1)
     frames.append(frame)
 
 # Refresh frame
-frames.append(pr.make_refresh_frame(PLID))
+frames.append(pr.make_refresh_frame(PLID, pp16))
 
 # DEBUG
 f = open("frames.txt", "w")
@@ -184,11 +191,11 @@ for fr in frames:
         f.write(format(b, '02X') + " ")
     f.write("\n")
 
-input("Place ESL in front of transmitter and press any key.")
+input("Place ESL in front of transmitter and press enter.")
 
 # Send data to IR transmitter
 if (port == "0"):
-    tx.transmit_esl_blaster(frames, blaster_port)
+    tx.transmit_esl_blaster(frames, pp16, blaster_info[0])
 else:
     tx.transmit_serial(frames, port)
 print("Done. Please allow a few seconds for the ESL to refresh.")

@@ -15,9 +15,12 @@ The device will simply appear as a Virtual COM Port. As there's no real COM Port
 Short the two solder pads on the back:
 ![ESL Blaster bootloader pads](jp_boot.png)
 
-Plug the device in and use `dfu-util-0.9-win64` with `FW\Release\program.bat` to update the firmware.
+Plug the device in and use `dfu-util-0.9-win64` with `FWxx\Release\program.bat` to update the firmware.
 
 Don't forget to disconnect the pads once done.
+
+* FW01: Basic functionality
+* FW02: PP16 high speed protocol support, more storage for remote mode frames (14 instead of 8)
 
 ## Using a non-rechargeable (CR2032) battery
 
@@ -29,7 +32,7 @@ Disconnect the two solder pads next to the push-button to disable the charging c
 This is the top-level serial protocol info to communicate with the ESL Blaster, not the ESL IR protocol itself.
 
 Commands are a single character (byte):
-* `?`: Ask for ID string. Replies with `ESLBlasterXY`. X is the hardware revision (B), Y is the firmware version (0).
+* `?`: Ask for ID string. Replies with `ESLBlasterXY`. X is the hardware revision (B), Y is the firmware version minus 1 (currently 0 or 1).
 * `L`: Load frame data. Format: `LsdrRx...`. s: frame size in bytes. d: delay between repeats. r: repeat count low byte. R: repeat count high byte. x: frame data...
 * `T`: Transmit loaded frame. Returns `K` when done.
 * `S`: Emergency stop. Stops any IR transmit operation.

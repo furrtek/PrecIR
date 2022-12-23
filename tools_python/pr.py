@@ -17,8 +17,10 @@ def crc16(data):
 
     return result
 
-def terminate_frame(frame, repeats):
+def terminate_frame(frame, pp16, repeats):
     crc = crc16(frame)
+    if pp16:
+    	frame[0:0] = [0x00, 0x00, 0x00, 0x40]	# Prepend special PP16 header
     frame.append(crc & 255)
     frame.append((crc // 256) & 255)
     frame.append(repeats & 255)             # This is used by the transmitter, it's not part of the transmitted data
@@ -47,7 +49,7 @@ def get_plid(barcode):
     PLID[3] = (id_value >> 16) & 0xFF
     return PLID
 
-def make_ping_frame(PLID, repeats):
+def make_ping_frame(PLID, pp16, repeats):
     frame = make_raw_frame(0x85, PLID, 0x17)	# 0x97 ?
     frame.append(0x01)
     frame.append(0x00)
@@ -55,12 +57,12 @@ def make_ping_frame(PLID, repeats):
     frame.append(0x00)
     for b in range(0, 22):
         frame.append(0x01)
-    terminate_frame(frame, repeats)
+    terminate_frame(frame, pp16, repeats)
     return frame
 
-def make_refresh_frame(PLID):
+def make_refresh_frame(PLID, pp16):
     frame = make_mcu_frame(PLID, 0x01)
     for b in range(0, 22):
         frame.append(0x00)
-    terminate_frame(frame, 1)
+    terminate_frame(frame, pp16, 1)
     return frame
