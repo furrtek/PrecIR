@@ -8,15 +8,15 @@ import sys
 import serial
 
 # Search for connected ESL Blaster
-blaster_port = tx.search_esl_blaster()
-if (blaster_port == "0"):
+blaster_info = tx.search_esl_blaster()
+if (blaster_info[0] == "0"):
     exit()
 
-ser = serial.Serial(blaster_port, 57600, timeout = 5)    # 5s timeout for read
+ser = serial.Serial(blaster_info[0], 57600, timeout = 5)    # 5s timeout for read
 ser.reset_input_buffer()
 
 frameA = [0x00, 0x00, 0x20, 0x00, 0x10, 0x00, 0x0B, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00, 0xAB, 0x09, 0x00, 0x00, 0xF2, 0xA7] # Segment change page
-frameB = [0x00, 0x00, 0x20, 0x00, 0x10, 0x00, 0x0B, 0x00, 0x85, 0x00, 0x00, 0x00, 0x00, 0x06, 0x11, 0x00, 0x00, 0xEA, 0x80] # DM change page
+frameB = [0x00, 0x00, 0x20, 0x00, 0x10, 0x00, 0x0D, 0x00, 0x85, 0x00, 0x00, 0x00, 0x00, 0x06, 0xF1, 0x00, 0x00, 0x00, 0x0A, 0x5D, 0x14] # DM show debug infos
 
 data = []
 data.extend([0] * (1024 - len(data)))
@@ -29,7 +29,7 @@ data[2+72:2+72+len(frameB)] = frameB
 print(len(data))
 
 ba = bytearray()
-ba.append('W')
+ba.append(87)	# W:Write flash
 ser.write(ba)
 ser.flush()
 for p in range(0, 8):
@@ -39,7 +39,7 @@ for p in range(0, 8):
 
     ser.write(ba)
     ser.flush()
-    ser.read_until('K')
+    ser.read_until(b'K')
     print("OK")
 
 print(ser.read())

@@ -42,9 +42,10 @@ volatile uint8_t SendOperationReady = 0, CurrentByte, Symbol, Protocol;
 volatile const uint8_t * FrameData;
 volatile uint32_t comm_reset_flag = 0, ram_frame_repeat_delay = 0;
 volatile uint32_t remote_mode = 0;
+uint8_t charging = 0;
 
 typedef struct {
-	uint16_t flags;	// protocol
+	uint16_t flags;	// Bit 0: Protocol
 	uint16_t repeats;
 	uint16_t delay;
 	uint16_t frame_size;
@@ -57,7 +58,7 @@ typedef struct {
 } userdata_t;
 
 #define RED_LED_OFF TIM3->CCR1 = 0x0000;
-#define RED_LED_NORMAL TIM3->CCR1 = (GPIOA->IDR & GPIO_IDR_4) ? 0x0000 : 0x0100;	// Off/Charge
+#define RED_LED_NORMAL TIM3->CCR1 = (charging >= 5) ? 0x0100 : 0x0000;	// Off/Charge
 #define RED_LED_MAX TIM3->CCR1 = 0x4000;	// IR transmit
 
 #define CDC_NOK CDC_Transmit_FS((uint8_t*)"N", 1);
@@ -109,7 +110,8 @@ static const uint32_t pp4_errors[4] = {
 // 0111: 107us 	(TIM16 27*4=108	Err=1)
 // Burst: 21us	(TIM16 5 *4=20	Err=-1)
 static const uint32_t pp16_steps[16] = {
-	7-1, 13-1, 9-1, 11-1, 37-1, 31-1, 35-1, 33-1, 21-1, 15-1, 19-1, 17-1, 23-1, 29-1, 25-1, 27-1
+	7-2-1, 13-2-1, 9-2-1, 11-2-1, 37-2-1, 31-2-1, 35-2-1, 33-2-1,
+	21-2-1, 15-2-1, 19-2-1, 17-2-1, 23-2-1, 29-2-1, 25-2-1, 27-2-1
 };
 static const uint32_t pp16_errors[16] = {
 	100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100		// All *100
@@ -118,7 +120,14 @@ static const uint32_t pp16_errors[16] = {
 #define PP4_ARR		484 - 1	// 10.08us
 #define PP4_BURST	4 - 1
 #define PP16_ARR	192 - 1	// 4us
-#define PP16_BURST	3 - 1
+#define PP16_BURST	5 - 1
+
+void IRStop() {
+	TIM16->CCMR1 &= (uint16_t)(~TIM_CCMR1_OC1M_0);	// Force inactive level
+	TIM16->CR1 &= ~TIM_CR1_CEN;		// Disable timer
+	SendOperationReady = 0;
+	RED_LED_NORMAL
+}
 
 void TIM16_IRQHandler(void) {
 	if (SendOperationReady) {
@@ -155,8 +164,14 @@ void TIM16_IRQHandler(void) {
 
 				Burst = 0;
 
+				// Burst: 20.4us
+				// -1: nope 0000:23.9us (6*4)
+				// -2: ok	0000:19.3us (5*4)	Total 39.7us
+				// -3: nope	0000:15.3us (4*4)
+				// Burst: 12.3us
+				// -0:  0000:28.2us	Total 40.5us	Total 40.5us
 				TickCounter = Protocol ? pp16_steps[Symbol] : pp4_steps[Symbol];
-				// Auto-adjust symbol time depending on timing error accumulation
+				// Auto-adjust symbol time depending on timing error accumulation and protocol time base
 				if (ErrorAcc >= (Protocol ? 400 : 1000)) {
 					TickCounter++;
 					ErrorAcc -= 1000;
@@ -189,18 +204,6 @@ void TIM14_IRQHandler(void) {
 
 	// Clear TIM_ENV update interrupt
 	TIM14->SR &= (uint16_t)(~TIM_SR_UIF);
-}
-
-// Check MCP73831 STAT output
-// Low: Charging
-// High: Charge done
-// Hi-z: No battery
-
-void IRStop() {
-	TIM16->CCMR1 &= (uint16_t)(~TIM_CCMR1_OC1M_0);	// Force inactive level
-	TIM16->CR1 &= ~TIM_CR1_CEN;		// Disable timer
-	SendOperationReady = 0;
-	RED_LED_NORMAL
 }
 
 void IRTX(const uint8_t * data, const uint32_t pp16, const uint32_t length, const uint32_t rpt) {
@@ -322,7 +325,7 @@ int main(void) {
 	NVIC_SetPriority(TIM14_IRQn, 1);
 
 	// TIM3: Red LED PWM
-	TIM3->ARR = (uint16_t)(0xFFFF);
+	TIM3->ARR = (uint16_t)(0xFFFF);		// 48M/65535 = 732Hz
 	TIM3->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_0;	// PWM mode 2
 	TIM3->CCER = TIM_CCER_CC1E;
 	TIM3->CCR1 = 0x1000;
@@ -379,6 +382,19 @@ int main(void) {
 		if (comm_reset_flag) {
 			comm_reset_flag = 0;
 			comm_state = STATE_IDLE;
+
+			// Check MCP73831 STAT output
+			// Low: Charging
+			// High: Charge done
+			// Hi-z/erratic: No battery
+			if (!(GPIOA->IDR & GPIO_IDR_4)) {
+				if (charging < 10)
+					charging++;
+			} else {
+				if (charging)
+					charging--;
+			}
+
 			if (!SendOperationReady) RED_LED_NORMAL	// Update LED
 		}
 

@@ -25,8 +25,8 @@ port = sys.argv[1]
 
 # Search for connected ESL Blaster if required
 if (port == "0"):
-    blaster_port = tx.search_esl_blaster()
-    if (blaster_port == "0"):
+    blaster_info = tx.search_esl_blaster()
+    if (blaster_info[0] == "0"):
         exit()
 
 # Get PLID from barcode string
@@ -38,7 +38,7 @@ frames = []
 
 frame = pr.make_raw_frame(0x85 if (sys.argv[3] == "DM") else 0x84, PLID, ba[0])
 frame.extend(ba[1:])
-pr.terminate_frame(frame, int(sys.argv[5]))
+pr.terminate_frame(frame, 0, int(sys.argv[5]))
 frames.append(frame)
 
 # DEBUG
@@ -50,7 +50,7 @@ for fr in frames:
 
 # Send data to IR transmitter
 if (port == "0"):
-    tx.transmit_esl_blaster(frames, blaster_port)
+    tx.transmit_esl_blaster(frames, 0, blaster_info[0])
 else:
     tx.transmit_serial(frames, port)
 print("Done.")
