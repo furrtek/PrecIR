@@ -36,7 +36,7 @@ def search_esl_blaster():
 
 	# Linux
 	if found == False:
-		for n in range(1, 10):
+		for n in range(0, 10):
 			comport = "/dev/ttyACM" + str(n)
 			result = try_serialport(comport)
 			if result[0]:
