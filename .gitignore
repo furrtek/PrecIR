@@ -4,3 +4,13 @@
 tools_python/frames.txt
 *.prefs
 *.exe
+*.pyc
+tools_python/prod_test.py
+tools_python/debug.py
+gui/
+*.bmp
+*.o
+*.elf
+*.map
+*.d
+*.psd
