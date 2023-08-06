@@ -67,8 +67,8 @@ if (port == "0"):
     blaster_info = tx.search_esl_blaster()
     if blaster_info[0] == False:
         exit()
-    if blaster_info[2] == 1:
-    	pp16 = 1	# ESL Blaster FW V2 is PP16 compatible
+    if blaster_info[2] >= 2:
+    	pp16 = 1	# ESL Blaster FW V2 and above is PP16 compatible
 
 # Open image file
 image = imread(sys.argv[2])

@@ -140,7 +140,7 @@ Sub RecordRLERun(ByVal RunCount As Integer)
         i = i + 1
     Wend
     
-    ' Unary-code the value length
+    ' Unary-code the value length - 1
     For B = 0 To i - 1 - 1
         ArrayAppendByte Compressed, 0
     Next B
@@ -379,7 +379,7 @@ Function HexPad(ByVal v As Byte) As String
 End Function
 
 Private Sub Form_Click()
-    Command1_Click  ' debug
+
 End Sub
 
 Private Sub Form_Load()

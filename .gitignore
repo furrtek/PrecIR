@@ -1,0 +1,6 @@
+
+*.log
+*.list
+tools_python/frames.txt
+*.prefs
+*.exe

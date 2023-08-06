@@ -23,8 +23,8 @@ def terminate_frame(frame, pp16, repeats):
     	frame[0:0] = [0x00, 0x00, 0x00, 0x40]	# Prepend special PP16 header
     frame.append(crc & 255)
     frame.append((crc // 256) & 255)
-    frame.append(repeats & 255)             # This is used by the transmitter, it's not part of the transmitted data
-    frame.append((repeats // 256) & 255)    # This is used by the transmitter, it's not part of the transmitted data
+    frame.append(repeats & 255)             # This is used by the serial transmitter, it's not part of the transmitted data
+    frame.append((repeats // 256) & 255)    # This is used by the serial transmitter, it's not part of the transmitted data
 
 def make_raw_frame(protocol, PLID, cmd):
     frame = [protocol, PLID[3], PLID[2], PLID[1], PLID[0], cmd]

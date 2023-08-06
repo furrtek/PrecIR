@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="org.furrtek.pricehax.MainActivity">
+    <item android:id="@+id/action_help"
+          android:title="Help"
+          android:orderInCategory="100"
+          app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_about"
+          android:title="About"
+          android:orderInCategory="200"
+          app:showAsAction="ifRoom"/>
+</menu>

@@ -21,11 +21,12 @@ if len(sys.argv[3]) != 46:
     usage()
 
 port = sys.argv[1]
+pp16 = 0	# None of the segment-based ESLs tested support PP16
 
 # Search for connected ESL Blaster if required
 if (port == "0"):
-    blaster_port = tx.search_esl_blaster()
-    if (blaster_port == "0"):
+    blaster_info = tx.search_esl_blaster()
+    if blaster_info[0] == False:
         exit()
 
 # Get PLID from barcode string
@@ -47,7 +48,7 @@ payload.extend([0x00, 0x00, 0x09, 0x00, 0x10, 0x00, 0x31])
 
 frame = pr.make_raw_frame(0x84, PLID, payload[0])
 frame.extend(payload[1:])
-pr.terminate_frame(frame, 100)
+pr.terminate_frame(frame, pp16, 100)
 frames.append(frame)
 
 # DEBUG
@@ -60,7 +61,7 @@ frames.append(frame)
 
 # Send data to IR transmitter
 if (port == "0"):
-    tx.transmit_esl_blaster(frames, blaster_port)
+    tx.transmit_esl_blaster(frames, pp16, blaster_info[0])
 else:
     tx.transmit_serial(frames, port)
 print("Done.")

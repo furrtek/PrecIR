@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    <Button
+            android:id="@+id/buttonTXImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TX image"
+            app:layout_constraintTop_toBottomOf="@+id/switchTXAuto"
+            android:enabled="false" app:layout_constraintStart_toEndOf="@+id/constraintLayout"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="20dp"/>
+    <TextView
+            android:text="Last scanned:\nNone"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp" android:id="@+id/textLastScanned"
+            app:layout_constraintTop_toTopOf="@+id/cameraPreview"
+            app:layout_constraintStart_toEndOf="@+id/cameraPreview" android:layout_marginStart="10dp"/>
+    <Switch
+            android:text="Auto TX on scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/switchTXAuto"
+            app:layout_constraintStart_toStartOf="@+id/radiogroup"
+            app:layout_constraintTop_toBottomOf="@+id/radiogroup" android:layout_marginTop="10dp"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="invisible" android:layout_marginEnd="10dp"/>
+    <Button
+            android:id="@+id/buttonLoadImg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SELECT IMAGE"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/constraintLayout"
+            app:layout_constraintTop_toBottomOf="@+id/imageview_dm"/>
+    <Button
+            android:id="@+id/buttonTXStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop TX"
+            app:layout_constraintTop_toBottomOf="@+id/progressbar"
+            app:layout_constraintEnd_toEndOf="@+id/progressbar"
+            android:enabled="true" app:layout_constraintStart_toStartOf="@+id/progressbar"
+            android:layout_marginTop="10dp"/>
+    <TextView
+            android:id="@+id/textStatus2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ready"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="5dp" android:layout_marginBottom="5dp"/>
+
+    <FrameLayout
+            android:id="@+id/cameraPreview"
+            android:layout_width="135dp"
+            android:layout_height="180dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="16dp"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:background="@drawable/orangeframe"
+            android:layout_width="150dp"
+            android:layout_height="260dp"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="20dp"
+            app:layout_constraintTop_toBottomOf="@+id/cameraPreview" android:id="@+id/constraintLayout"
+            android:layout_marginTop="30dp">
+
+        <Button
+                android:id="@+id/buttonTXPageDM"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TX page DM"
+                app:layout_constraintTop_toBottomOf="@+id/buttonTXPage" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="10dp" android:enabled="false"/>
+        <Button
+                android:id="@+id/buttonTXPage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TX page"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"
+                android:enabled="false" app:layout_constraintTop_toBottomOf="@+id/spinnerPage"
+                android:layout_marginTop="20dp"/>
+        <TextView
+                android:text="Page\nnumber:"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/textFor2"
+                app:layout_constraintStart_toStartOf="parent"
+                android:gravity="end" app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintEnd_toStartOf="@+id/spinnerPage"
+                app:layout_constraintTop_toTopOf="@+id/spinnerPage"
+                android:layout_marginStart="5dp"/>
+        <Spinner
+                android:id="@+id/spinnerDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" app:layout_constraintTop_toBottomOf="@+id/buttonTXPageDM"
+                app:layout_constraintStart_toEndOf="@+id/textFor" app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintEnd_toEndOf="parent"/>
+        <Switch
+                android:text="Loop TX"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/switchLoopTX"
+                android:layout_marginBottom="10dp"
+                app:layout_constraintStart_toStartOf="parent" app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"/>
+        <TextView
+                android:text="For:"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/textFor"
+                app:layout_constraintTop_toTopOf="@+id/spinnerDuration" app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginStart="10dp" app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintEnd_toStartOf="@+id/spinnerDuration"/>
+        <Spinner
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" android:id="@+id/spinnerPage"
+                app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toEndOf="@+id/textFor2"
+                app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="10dp" android:layout_marginEnd="5dp"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+            android:src="@drawable/dm_128x64"
+            android:background="@drawable/orangeframe"
+            android:layout_width="150dp"
+            android:layout_height="100dp" android:id="@+id/imageview_dm"
+            app:layout_constraintTop_toBottomOf="@+id/seekScale"
+            app:layout_constraintStart_toEndOf="@+id/constraintLayout" app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="5dp" android:scaleType="center"
+    />
+    <TextView
+            android:text="Broadcast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+            app:layout_constraintStart_toStartOf="@+id/constraintLayout"
+    />
+    <RadioGroup
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/buttonLoadImg"
+            app:layout_constraintStart_toEndOf="@+id/constraintLayout" app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintEnd_toEndOf="parent" android:id="@+id/radiogroup"
+            android:checkedButton="@id/radioBW" android:layout_marginTop="10dp">
+        <RadioButton
+                android:text="B/W"
+                android:layout_width="match_parent"
+                android:layout_height="40dp" android:id="@+id/radioBW"/>
+        <RadioButton
+                android:text="B/W/R"
+                android:layout_width="match_parent"
+                android:layout_height="40dp" android:id="@+id/radioBWR"/>
+    </RadioGroup>
+    <ProgressBar
+            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+            android:layout_width="150dp"
+            android:layout_height="20dp"
+            android:id="@+id/progressbar"
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
+            app:layout_constraintStart_toStartOf="@+id/constraintLayout" android:layout_marginTop="10dp"/>
+    <TextView
+            android:text="Disconnected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textStatus"
+            app:layout_constraintBottom_toTopOf="@+id/textStatus2"
+            app:layout_constraintStart_toStartOf="@+id/textStatus2"/>
+    <SeekBar
+            android:layout_width="0dp"
+            android:layout_height="30dp" android:id="@+id/seekScale"
+            app:layout_constraintTop_toBottomOf="@+id/textLastScanned"
+            android:max="100" android:progress="100" app:layout_constraintStart_toEndOf="@+id/textScale"
+            app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="10dp"/>
+    <TextView
+            android:text="100x100px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textScale"
+            app:layout_constraintEnd_toStartOf="@+id/seekScale" app:layout_constraintTop_toTopOf="@+id/seekScale"
+            android:layout_marginTop="5dp" app:layout_constraintStart_toEndOf="@+id/cameraPreview"
+            app:layout_constraintHorizontal_chainStyle="spread" android:layout_marginStart="5dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
