@@ -2,7 +2,7 @@
 
 Collection of software and hardware tools, their source code and design files for communicating with **infrared based** Electronic Shelf Labels.
 
-See http://furrtek.free.fr/index.php?a=esl for more details.
+See http://furrtek.free.fr/index.php?a=esl for reverse-engineering of the system, the protocol and electronics.
 
 Thanks to [@david4599](https://github.com/david4599) for infos about color tags.
 
