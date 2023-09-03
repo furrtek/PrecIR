@@ -19,7 +19,6 @@ def image_convert(image, color_pass):
 				pixels.append(0 if luma >= 0.1 and luma < 0.9 else 1)	# 0 codes color (anything mid grey)
 			else:
 				pixels.append(0 if luma < 0.5 else 1)	# 0 codes black
-	        	
 	return pixels
 
 def record_run(run_count):
@@ -28,7 +27,7 @@ def record_run(run_count):
     while run_count:
         bits.insert(0, run_count & 1)
         run_count >>= 1
-    # Zero length coding
+    # Zero length coding - 1
     for b in bits[1:]:
         compressed.append(0)
     if len(bits):
@@ -40,7 +39,7 @@ def usage():
     print("img2dm.py port image barcode (page color x y pp4)\n")
     print("  port: serial port name (0 for ESL Blaster)")
     print("  image: image file")
-    print("  barcode: 17-character barcode data")
+    print("  barcode: 17-character ESL barcode data")
     print("  page: page number to update (0~15), default: 0")
     print("  color: 0:Black and white only, 1:Color-capable ESL, default: 0")
     print("  x y: top-left position of image, default: 0 0")
@@ -74,8 +73,6 @@ if (port == "0"):
 image = imread(sys.argv[2])
 width = image.shape[1]
 height = image.shape[0]
-# Medium size is 208*112
-print("Image is %i*%i, please make sure that this is equal or less than the ESL's display size." % (width, height))
 
 # Get PLID from barcode string
 PLID = pr.get_plid(sys.argv[3])
@@ -86,16 +83,18 @@ pos_y = int(sys.argv[7]) if arg_count >= 8 else 0
 if arg_count >= 9:
 	if int(sys.argv[8]):
 		pp16 = 0
+            
+# Medium size is 208*112
+print("Image is %i*%i in %s mode, please make sure that this suits your ESL's display." % (width, height, "color" if color_mode else "black and white"))
 
 # First pass for black and white
 pixels = image_convert(image, 0)
 
 if color_mode:
-	# Append second pass for color  if needed
+	# Append second pass for color, if needed
 	pixels += image_convert(image, 1)
 
 size_raw = len(pixels)
-print("Compressing %i bits..." % size_raw)
 
 # First pixel
 bits = []
@@ -122,11 +121,11 @@ size_compressed = len(compressed)
 # Decide on compression or not
 # size_compressed = size_raw # Disable compression
 if size_compressed < size_raw:
-    print("Compression ratio: %.1f%%" % (100 - ((size_compressed * 100) / float(size_raw))))
+    print("Compression ratio: %.1f%% (%d -> %d bytes)" % (100 - ((size_compressed * 100) / float(size_raw)), size_raw, size_compressed))
     data = compressed
     compression_type = 2
 else:
-    print("Compression ratio suxx, using raw data")
+    print("Compression ratio suxx, using raw data instead")
     data = pixels
     compression_type = 0
 
@@ -139,14 +138,12 @@ for b in range(0, padding):
 padded_data_size = len(data)
 frame_count = padded_data_size // bits_per_frame
 
-print("Data size: %i (%i frames)" % (data_size, frame_count))
+#print("Data size: %i (%i frames)" % (data_size, frame_count))
 
 frames = []
 
 # Wake-up ping frame
 frames.append(pr.make_ping_frame(PLID, pp16, 400))
-
-print("Generating frames...")
 
 # Parameters frame
 frame = pr.make_mcu_frame(PLID, 0x05)

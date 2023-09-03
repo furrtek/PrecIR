@@ -49,6 +49,12 @@ def search_esl_blaster():
 		result[0] = comport
 
 	return result
+	
+def show_progress(i, total, size, repeats, pp16):
+    if repeats > 100:
+        print("Transmitting wake-up frames, please wait...")	# Lots of repeats certainly means this is a wake-up frame
+    else:
+        print("Transmitting frame %u/%u using %s, length %u, repeated %u times." % (i, total, "PP16" if pp16 else "PP4", size, repeats), end="\r", flush=True)
 
 def transmit_serial(frames, port):
     ser = serial.Serial(port, 57600, timeout = 10)    # 10s timeout for read
@@ -58,9 +64,9 @@ def transmit_serial(frames, port):
     for fr in frames:
         data_size = len(fr) - 2
         repeats = fr[-2] + (fr[-1] * 256)
-        if repeats > 255:	# Cap to one byte for the simple serial transmitter
-            repeats = 255
-        print("Transmitting frame %u/%u, length %u, repeated %u times." % (i, frame_count, data_size, repeats))
+        if repeats > 255:
+            repeats = 255	# Cap to one byte for the simple serial transmitter
+        show_progress(i, frame_count, data_size, repeats, 0)
 
         ba = bytearray()
         ba.append(data_size)
@@ -72,7 +78,7 @@ def transmit_serial(frames, port):
         ser.flush()
         ser.read_until('A')
         i += 1
-
+    print("")
     ser.close()
 
 def transmit_esl_blaster(frames, pp16, port):
@@ -88,10 +94,13 @@ def transmit_esl_blaster(frames, pp16, port):
         data_size = len(fr) - 2
         repeats = fr[-2] + (fr[-1] * 256)
 
-        if repeats > 32767:	# Cap to 15 bits because FW V2 uses bit 16 to indicate PP16 protocol
-            repeats = 32767
-
-        print("Transmitting frame %u/%u using %s, length %u, repeated %u times." % (i, frame_count, "PP16" if pp16 else "PP4", data_size, repeats))
+        if repeats > 32767:
+            repeats = 32767	# Cap to 15 bits because FW V2 uses bit 16 to indicate PP16 protocol
+        #if repeats > 100:
+        #    print("Transmitting wake-up frames, please wait...")	# Lots of repeats certainly means this is a wake-up frame
+        #else:
+        #	print("Transmitting frame %u/%u using %s, length %u, repeated %u times." % (i, frame_count, "PP16" if pp16 else "PP4", data_size, repeats), end="\r", flush=True)
+        show_progress(i, frame_count, data_size, repeats, pp16)
 
         if pp16:
         	repeats |= 0x8000
@@ -99,7 +108,7 @@ def transmit_esl_blaster(frames, pp16, port):
         ba = bytearray()
         ba.append(76)	# L:Load
         ba.append(data_size)
-        ba.append(30)   # 30*50 = 1500 timer ticks between repeats
+        ba.append(10)   # 30*50 = 1500 timer ticks between repeats
         ba.append(repeats & 255)
         ba.append((repeats // 256) & 255)
         for b in range(0, data_size):
@@ -115,5 +124,5 @@ def transmit_esl_blaster(frames, pp16, port):
         ser.flush()
         ser.read_until(b'K')	# Wait for transmit done
         i += 1
-
+    print("")
     ser.close()

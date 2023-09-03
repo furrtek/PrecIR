@@ -46,3 +46,6 @@ No. For two reasons:
 ***Is possession and use of such devices legal ?***
 
 There's no cracking, exploit, patent or copyright infrigement going on so IMO it's safe to assume this is perfectly legal. Just don't try changing price displays so you can get discounts, the price in the store's database obviously remains unchanged so you'll end up having to pay the correct price anyways.
+
+***My tricolor-capable ESL shows red garbage after an image update***
+Transmit the image in tricolor mode. Transmitting black and white images to tricolor ESLs doesn't clear the red layer.
