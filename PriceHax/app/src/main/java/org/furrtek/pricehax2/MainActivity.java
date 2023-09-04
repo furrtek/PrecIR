@@ -1,6 +1,7 @@
 package org.furrtek.pricehax2;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -15,49 +16,46 @@ import android.hardware.Camera;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
-import java.io.IOException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.*;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
-import androidx.navigation.ui.AppBarConfiguration;
-
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.*;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import net.sourceforge.zbar.Config;
 import net.sourceforge.zbar.Image;
 import net.sourceforge.zbar.ImageScanner;
 import net.sourceforge.zbar.Symbol;
 import org.furrtek.pricehax2.databinding.ActivityMainBinding;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import static android.provider.Settings.System.getString;
-import static androidx.core.app.ActivityCompat.finishAffinity;
+import org.jetbrains.annotations.NotNull;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private Handler autoFocusHandler;
-    private CameraPreview mPreview;
     CoordinatorLayout mainlayout;
     private enum UsbPermission { Unknown, Requested, Granted, Denied }
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.APPLICATION_ID + ".GRANT_USB";
@@ -72,12 +70,12 @@ public class MainActivity extends AppCompatActivity {
     int imageScale = 100;
     DMImage dmImage = null;
     boolean inBWR = false;
+    boolean dithering = false;
     private boolean blasterConnected = false;
     char blasterHWVersion;
     int blasterFWVersion;
     Uri selectedImageUri = null;
     int dispDurationIdx, dispPage;
-    //AsyncResponseTX asyncTaskTX = null;
     boolean transmitting = false;
     boolean loopTX = false;
     boolean autoTX = false;
@@ -100,36 +98,31 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
-        mainlayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        mainlayout = binding.coordinatorLayout;    //(CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        // App e-stop
-        binding.main.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finishAffinity();
-                System.exit(0);
-            }
+        // App e-stop (disabled for now, not very useful)
+        binding.main.fab.setOnClickListener(view -> {
+            finishAffinity();
+            System.exit(0);
         });
 
         // Stop TX
-        binding.main.buttonTXStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (transmitting) {
-                    byte[] data = {(byte)'S'};
-                    try {
-                        usbSerialPort.write(data, 1000);
-                    } catch(IOException ignore) {
-                    }
-                    binding.main.switchLoopTX.setChecked(false);
+        binding.main.buttonTXStop.setOnClickListener(view -> {
+            if (transmitting) {
+                // Tell blaster to stop TX
+                byte[] data = {(byte)'S'};
+                try {
+                    usbSerialPort.write(data, 1000);
+                } catch(IOException ignore) {
                 }
+                binding.main.switchLoopTX.setChecked(false);    // Disable loop mode
             }
         });
 
         // Populate duration spinner
         Spinner spinner = binding.main.spinnerDuration;
         List<String> arrayList = Arrays.asList("2s", "15s", "15m", "Forever");
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, arrayList);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, arrayList);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -143,10 +136,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Populate page spinner
-        List<String> pageList = new ArrayList<String>();
+        List<String> pageList = new ArrayList<>();
         for (int i = 0; i < 7; i++)
             pageList.add(Integer.toString(i));
-        ArrayAdapter<String> arrayAdapterPage = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, pageList);
+        ArrayAdapter<String> arrayAdapterPage = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, pageList);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.main.spinnerPage.setAdapter(arrayAdapterPage);
         binding.main.spinnerPage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -159,98 +152,77 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        binding.main.buttonTXPageDM.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // 0x85, 0x00, 0x00, 0x00, 0x00, 0x06, 0xF1, 0x00, 0x00, 0x00, 0x00
-                List<IRFrame> frames = new ArrayList<IRFrame>();
-                Byte[] payload = {0x06, 0x00, 0x00, 0x00, 0x00, 0x00};
-                payload[1] = (byte)(((dispPage & 7) << 3) | 1);
+        binding.main.buttonTXPageDM.setOnClickListener(view -> {
+            // 0x85, 0x00, 0x00, 0x00, 0x00, 0x06, 0xF1, 0x00, 0x00, 0x00, 0x00
+            List<IRFrame> frames = new ArrayList<>();
+            Byte[] payload = {0x06, 0x00, 0x00, 0x00, 0x00, 0x00};
+            payload[1] = (byte)(((dispPage & 7) << 3) | 1);
 
-                if (dispDurationIdx != 3) {
-                    int[] durations = {2, 15, 15*60, -1};
-                    int duration = durations[dispDurationIdx];
-                    payload[4] = (byte)(duration >> 8);
-                    payload[5] = (byte)(duration & 255);
-                } else {
-                    payload[1] = (byte)(payload[1] | 0x80);   // "Forever" flag
-                }
-
-                frames.add(new IRFrame(0, (byte)0x85, Arrays.asList(payload), 30, 200));
-                IRTransmit(frames);
-            }
-        });
-
-        binding.main.buttonTXPage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // 0x84, 0x00, 0x00, 0x00, 0x00, 0xAB, 0x00, 0x00, 0x00
-
-                List<IRFrame> frames = new ArrayList<IRFrame>();
-                Byte[] payload = {(byte)0xAB, 0x00, 0x00, 0x00};
-
-                int[] durations = {1, 3, 5, 0x80};
+            if (dispDurationIdx < 3) {
+                // Warning: This must match contents of spinnerDuration !
+                int[] durations = {2, 15, 15*60};
                 int duration = durations[dispDurationIdx];
-                payload[1] = (byte)(((dispPage & 7) << 3) | duration);
-
-                frames.add(new IRFrame(0, (byte)0x84, Arrays.asList(payload), 30, 200));
-                IRTransmit(frames);
+                payload[4] = (byte)(duration >> 8);
+                payload[5] = (byte)(duration & 255);
+            } else {
+                payload[1] = (byte)(payload[1] | 0x80);   // "Forever" flag
             }
+
+            frames.add(new IRFrame(0, (byte)0x85, Arrays.asList(payload), 30, 200));
+            IRTransmit(frames);
         });
 
-        binding.main.switchLoopTX.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                loopTX = isChecked;
-            }
+        binding.main.buttonTXPage.setOnClickListener(view -> {
+            // 0x84, 0x00, 0x00, 0x00, 0x00, 0xAB, 0x00, 0x00, 0x00
+            List<IRFrame> frames = new ArrayList<>();
+            Byte[] payload = {(byte)0xAB, 0x00, 0x00, 0x00};
+
+            // Warning: This must match contents of spinnerDuration !
+            int[] durations = {1, 3, 5, 0x80};
+            int duration = durations[dispDurationIdx];
+            payload[1] = (byte)(((dispPage & 7) << 3) | duration);
+
+            frames.add(new IRFrame(0, (byte)0x84, Arrays.asList(payload), 30, 200));
+            IRTransmit(frames);
         });
 
-        binding.main.switchTXAuto.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                autoTX = isChecked;
-            }
-        });
+        // Loop mode checkbox
+        binding.main.switchLoopTX.setOnCheckedChangeListener((buttonView, isChecked) -> loopTX = isChecked);
 
-        binding.main.buttonTXImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                TransmitImage();
-            }
-        });
+        // Auto mode checkbox
+        binding.main.switchTXAuto.setOnCheckedChangeListener((buttonView, isChecked) -> autoTX = isChecked);
+
+        binding.main.buttonTXImage.setOnClickListener(view -> TransmitImage());
 
         // Image selection and processing
         ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        if (result.getResultCode() == Activity.RESULT_OK) {
-                            if (result.getData() != null) {
-                                selectedImageUri = result.getData().getData();
-                                convertImage();
-                            }
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        if (result.getData() != null) {
+                            selectedImageUri = result.getData().getData();
+                            convertImage();
                         }
                     }
                 });
 
-        binding.main.buttonLoadImg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                photoPickerIntent.setType("image/*");
-                photoPickerIntent.setAction(Intent.ACTION_GET_CONTENT);
-                someActivityResultLauncher.launch(photoPickerIntent);
-            }
+        binding.main.buttonLoadImg.setOnClickListener(view -> {
+            Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+            photoPickerIntent.setType("image/*");
+            photoPickerIntent.setAction(Intent.ACTION_GET_CONTENT);
+            someActivityResultLauncher.launch(photoPickerIntent);
         });
 
         // BW or BWR mode selection
-        binding.main.radiogroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                inBWR = binding.main.radioBWR.isChecked();
-                updateImage();
-            }
+        binding.main.radiogroup.setOnCheckedChangeListener((group, checkedId) -> {
+            inBWR = binding.main.radioBWR.isChecked();
+            updateImagePreview();
+        });
+
+        // Dithering selection
+        binding.main.radiogroup2.setOnCheckedChangeListener((group, checkedId) -> {
+            dithering = binding.main.radioDitherOn.isChecked();
+            convertImage();
         });
 
         // Image scaling change
@@ -269,8 +241,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Start camera preview. Ask for camera permission if not already granted.
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.CAMERA}, 123);
         } else {
             setScanPreview();
@@ -310,36 +281,56 @@ public class MainActivity extends AppCompatActivity {
 
             new DMConvert(
                 binding.main.progressbar,
-                new AsyncResponse() {
-                    @Override
-                    public void processFinish(DMImage dmimage) {
+                    dmimage -> {
                         dmImage = dmimage;
                         binding.main.textScale.setText(getString(R.string.image_dimensions, dmimage.bitmapBW.getWidth(), dmimage.bitmapBW.getHeight()));
-                        updateImage();
-                        Log.d("PHX", "Converted image ok");
-                    }
-                }).execute(selectedImage);
+                        updateImagePreview();
+                    }).execute(new DMConvertParams(selectedImage, dithering));
         } catch (Exception e) {
             Log.d("PHX", e.getLocalizedMessage());
+            Log.d("PHX", "TEST !!!!");
         }
     }
-    public void updateImage() {
+    public void updateImagePreview() {
         if (dmImage != null)
             binding.main.imageviewDm.setImageBitmap(inBWR ? dmImage.bitmapBWR : dmImage.bitmapBW);
     }
 
     private Bitmap scaleImage(Bitmap selectedImage) {
-        float originalWidth = selectedImage.getWidth();
-        float originalHeight = selectedImage.getHeight();
         int newWidth, newHeight;
-        if (originalWidth < 300) {
-            //imageScale = (int)(originalWidth * 100) / 300;
-            newWidth = (int)originalWidth;
-            newHeight = (int)originalHeight;
+        int originalWidth = selectedImage.getWidth();
+        int originalHeight = selectedImage.getHeight();
+
+        if ((originalWidth < 300) && (originalHeight < 300)) {
+            // If the original dimensions can plausibly fit in an existing ESL display, keep them
+            newWidth = originalWidth;
+            newHeight = originalHeight;
+            binding.main.seekScale.setEnabled(false);
         } else {
+            // Otherwise, use the slider scaling factor, with a resulting width of 300px when it's at max
+            // Kind of silly and won't work well if image is taller than it is wide, but good enough for now
             newWidth = (300 * imageScale) / 100;
-            newHeight = (int)(newWidth * (originalHeight / originalWidth));
+            newHeight = (newWidth * (originalHeight / originalWidth));
+            binding.main.seekScale.setEnabled(true);
         }
+
+        // Perform the slightest possible resize to match the constraint of having a pixel count multiple of 8
+        int pixelCount = newWidth * newHeight;
+        boolean multipleOfEight = (pixelCount & 7) == 0;
+        Log.d("PHX", String.format("pixelCount = %d (%smultiple of 8)", pixelCount, multipleOfEight ? "" : "not a "));
+        if (!multipleOfEight) {
+            binding.main.textStatus2.setText("Adjusted image size for pixel count to be a multiple of 8.");
+            int nearestWidth = newWidth % 8;
+            int nearestHeight = newHeight % 8;
+            if (nearestWidth < nearestHeight) {
+                newWidth -= nearestWidth;
+            } else {
+                newHeight -= nearestHeight;
+            }
+            pixelCount = newWidth * newHeight;
+            Log.d("PHX", String.format("New pixelCount = %d (multiple of 8)", pixelCount));
+        }
+
         return Bitmap.createScaledBitmap(selectedImage, newWidth, newHeight, true);
     }
 
@@ -349,22 +340,20 @@ public class MainActivity extends AppCompatActivity {
         transmitting = true;
         new ESLBlaster(
             usbSerialPort,
+            Character.getNumericValue(blasterHWVersion),
             binding.main.progressbar,
             binding.main.textStatus2,
-            new AsyncResponseTX() {
-                @Override
-                public void processFinish(boolean result) {
+                result -> {
                     if (loopTX) {
                         IRTransmit(frames);
                     } else {
                         transmitting = false;
                         enableTXWidgets(true);
                     }
-                }
-            }).execute(frames);
+                }).execute(frames);
     }
 
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 123) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -377,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
+    Camera.PreviewCallback previewCB = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
             String strSupplement;
             Camera.Size size = camera.getParameters().getPreviewSize();
@@ -386,10 +375,10 @@ public class MainActivity extends AppCompatActivity {
             if (MainActivity.this.scanner.scanImage(previewimage) != 0) {
                 Iterator<Symbol> it = MainActivity.this.scanner.getResults().iterator();
                 //while (it.hasNext()) {
-                String barcodeString = ((Symbol) it.next()).getData();
-                if (barcodeString != lastBarcodeString) {
+                String barcodeString = (it.next()).getData();
+                //if (!barcodeString.equals(lastBarcodeString)) {
                     if (barcodeValid(barcodeString)) {
-                        lastPLID = (Integer.parseInt(barcodeString.substring(2, 7))<<16) + Integer.parseInt(barcodeString.substring(7, 12));
+                        lastPLID = ((long) Integer.parseInt(barcodeString.substring(2, 7)) <<16) + Integer.parseInt(barcodeString.substring(7, 12));
                         String PLSerial = Long.toHexString(lastPLID);
                         while (PLSerial.length() < 8)
                             PLSerial = "0" + PLSerial;
@@ -404,17 +393,15 @@ public class MainActivity extends AppCompatActivity {
                         lastPLID = 0;
                     }
                     binding.main.textLastScanned.setText("Last scanned:\n" + barcodeString + "\n (" + strSupplement + ")");
-                }
-                lastBarcodeString = barcodeString;
+                //}
+                //lastBarcodeString = barcodeString;
             }
         }
     };
-    private Runnable doAutoFocus = new Runnable() {
-        public void run() {
-            /*if (MainActivity.this.mCamera != null) {
-                MainActivity.this.mCamera.autoFocus(MainActivity.this.autoFocusCB);
-            }*/
-        }
+    private final Runnable doAutoFocus = () -> {
+        /*if (MainActivity.this.mCamera != null) {
+            MainActivity.this.mCamera.autoFocus(MainActivity.this.autoFocusCB);
+        }*/
     };
 
     Camera.AutoFocusCallback autoFocusCB = new Camera.AutoFocusCallback() {
@@ -426,9 +413,9 @@ public class MainActivity extends AppCompatActivity {
     public void setScanPreview() {
         // Init Camera preview
         this.autoFocusHandler = new Handler();
-        this.mPreview = new CameraPreview(this, this.previewCb, this.autoFocusCB);
+        CameraPreview mPreview = new CameraPreview(this, this.previewCB, this.autoFocusCB);
         this.preview = binding.main.cameraPreview;
-        this.preview.addView(this.mPreview);
+        this.preview.addView(mPreview);
 
         // Init ZBar
         this.scanner = new ImageScanner();
@@ -445,17 +432,17 @@ public class MainActivity extends AppCompatActivity {
         if (Integer.parseInt(barcodeString.substring(5, 6)) > 53) return false;
         int sum = 0;
         for (int i = 0; i < barcodeString.length() - 1; i++)
-            sum += (int)barcodeString.charAt(i);
-        if (sum % 10 != Integer.parseInt(barcodeString.substring(16, 17))) return false;
-        return true;
+            sum += barcodeString.charAt(i);
+        return sum % 10 == Integer.parseInt(barcodeString.substring(16, 17));
     }
 
     public void status(String msg) {
         Snackbar.make(mainlayout, msg, Snackbar.LENGTH_LONG).setAction("Action", null).show();
     }
 
+    @SuppressLint("DefaultLocale")
     public void testConnect() {
-        UsbDevice device = null;
+        UsbDevice device;
         UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         /*for(UsbDevice v : usbManager.getDeviceList().values())
             if(v.getDeviceId() == deviceId)
@@ -473,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
             status("ESL Blaster connection failed: no driver found");
             return;
         }
-        if (driver.getPorts().size() < 0) {
+        if (driver.getPorts().size() < 1) {
             status("ESL Blaster connection failed: not enough ports at device");
             return;
         }
@@ -504,8 +491,8 @@ public class MainActivity extends AppCompatActivity {
                 usbSerialPort.write(data, 1000);
                 if (usbSerialPort.read(buffer, 2000) > 0) {  // 2s timeout should be enough
                     String s = new String(buffer, StandardCharsets.UTF_8).substring(0, 12);
-                    Log.d("PHX", String.valueOf((char)buffer[0]));
-                    if (s.substring(0, 10).equals("ESLBlaster")) {
+                    //Log.d("PHX", String.valueOf((char)buffer[0]));
+                    if (s.startsWith("ESLBlaster")) {
                         status("ESL Blaster connected !");
                         blasterHWVersion = s.charAt(10);
                         blasterFWVersion = Character.digit(s.charAt(11), 10);
@@ -513,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
                         enableTXWidgets(true);
                         binding.main.textStatus.setText(String.format("ESLBlaster connected (HW %c, FW %d)", blasterHWVersion, blasterFWVersion));
                     }
-                };
+                }
             } catch(IOException e) {
                 e.printStackTrace();
                 setDisconnected();

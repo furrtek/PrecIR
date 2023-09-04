@@ -74,6 +74,12 @@ image = imread(sys.argv[2])
 width = image.shape[1]
 height = image.shape[0]
 
+# ESLs only accept images with pixel counts multiple of 8
+pixel_count = width * height
+if pixel_count & 7:
+	print("The image's pixel count (currently %d) must be a multiple of 8. Please adjust its size." % pixel_count)
+	exit()
+
 # Get PLID from barcode string
 PLID = pr.get_plid(sys.argv[3])
 
@@ -83,7 +89,7 @@ pos_y = int(sys.argv[7]) if arg_count >= 8 else 0
 if arg_count >= 9:
 	if int(sys.argv[8]):
 		pp16 = 0
-            
+
 # Medium size is 208*112
 print("Image is %i*%i in %s mode, please make sure that this suits your ESL's display." % (width, height, "color" if color_mode else "black and white"))
 
@@ -131,11 +137,13 @@ else:
 
 # Pad data to multiple of bits_per_frame
 data_size = len(data)
+
 padding = bits_per_frame - (data_size % bits_per_frame)
 for b in range(0, padding):
     data.append(0)
 
 padded_data_size = len(data)
+
 frame_count = padded_data_size // bits_per_frame
 
 #print("Data size: %i (%i frames)" % (data_size, frame_count))
@@ -147,7 +155,7 @@ frames.append(pr.make_ping_frame(PLID, pp16, 400))
 
 # Parameters frame
 frame = pr.make_mcu_frame(PLID, 0x05)
-pr.append_word(frame, data_size // 8)	# Total byte count for group
+pr.append_word(frame, padded_data_size // 8)	#data_size // 8)	# Total byte count for group
 frame.append(0x00)              # Unused
 frame.append(compression_type)
 frame.append(page)

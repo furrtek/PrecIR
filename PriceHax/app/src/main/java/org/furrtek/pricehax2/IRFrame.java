@@ -48,16 +48,14 @@ class IRFrame {
         if (PP16) {
             // Special PP16 header
             Byte[] header = {0x00, 0x00, 0x00, (byte)0x40};
-            frame_data.addAll(Arrays.asList(header));
+            frame_data.addAll(0, Arrays.asList(header));
         }
 
-        // Debug
-        String hex_str = "";
+        /*String hex_str = "";
         for (byte b : frame_data) {
             hex_str += String.format("%02X ", b);
         }
-
-        Log.d("getRawData", hex_str);
+        Log.d("PHX", "getRawData " + hex_str);*/
 
         return frame_data;
     }

@@ -20,13 +20,14 @@ public class DMGen {
 
         // Wake-up frame
         Byte[] payload = {(byte) 0x17, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-        frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payload), 30, 200));   // TODO: Check delay and repeats
+        frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payload), 10, 400)); // 400 Same parameters as Python tools
 
         // Start frame
-        int datalen = dmImage.byteStreamBW.size();  // TODO: Pass selected BW or BWR bytestream instead of dmImage
+        List<Byte> byteStream = BWR ? dmImage.byteStreamBWR : dmImage.byteStreamBW;
+        int datalen = byteStream.size();
         int width = dmImage.bitmapBW.getWidth();
         int height = dmImage.bitmapBW.getHeight();
-        Log.d("PHX", String.format("w,h: %d,%d", width, height));
+        Log.d("PHX", String.format("Dimensions: %d*%d", width, height));
         int x = 0;
         int y = 0;
         Byte[] payload_start = {
@@ -44,31 +45,30 @@ public class DMGen {
                 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00
         };
-        frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payload_start), 30, 1));   // TODO: Check delay and repeats
+        frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payload_start), 10, 1));
 
         // Data frames
-        Log.d("PHX", String.format("Datalen %d", datalen));
-        int ymax = (int) Math.ceil((double)datalen / 20);
-        Log.d("PHX", String.format("ymax %d", ymax));
-        for (y = 0; y < ymax; y++) {
+        Log.d("PHX", String.format("datalen: %d", datalen));
+        int frame_count = (int)Math.ceil((double)datalen / 20);
+        Log.d("PHX", String.format("frame_count: %d", frame_count));
+        for (int frame_idx = 0; frame_idx < frame_count; frame_idx++) {
             Byte[] payload_data = new Byte[27];
-            Log.d("PHX", String.format("Gen data frame %d", y));
             payload_data[0] = (byte) 0x34;
             payload_data[1] = (byte) 0;
             payload_data[2] = (byte) 0;
             payload_data[3] = (byte) 0;
             payload_data[4] = (byte) 0x20;
-            payload_data[5] = (byte) (y >> 8);
-            payload_data[6] = (byte) (y & 255);
-            for (int cp = 0; cp < 20; cp++) {        // WAS 20
-                payload_data[7 + cp] = dmImage.byteStreamBW.get(cp + (y * 20));
+            payload_data[5] = (byte) (frame_idx >> 8);
+            payload_data[6] = (byte) (frame_idx & 255);
+            for (int cp = 0; cp < 20; cp++) {
+                payload_data[7 + cp] = byteStream.get(cp + (frame_idx * 20));
             }
-            frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payload_data), 30, 1));   // TODO: Check delay and repeats
+            frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payload_data), 10, 1));
         }
 
         // Refresh frame
         Byte[] payloadc = {(byte) 0x34, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payloadc), 30, 1));   // TODO: Check delay and repeats
+        frames.add(new IRFrame(PLID, (byte)0x85, Arrays.asList(payloadc), 10, 1));
 
         return frames;
     }

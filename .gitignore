@@ -17,3 +17,4 @@ gui/
 *.bat
 *.eep
 *.lss
+tools_python/test_mul8.py

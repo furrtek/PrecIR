@@ -1,6 +1,5 @@
 package org.furrtek.pricehax2;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ProgressBar;
@@ -9,8 +8,6 @@ import android.widget.TextView;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 public class ESLBlaster extends AsyncTask<List<IRFrame>, TXProgress, Boolean> {
@@ -18,14 +15,16 @@ public class ESLBlaster extends AsyncTask<List<IRFrame>, TXProgress, Boolean> {
     private ProgressBar mProgressBar;
     AsyncResponseTX delegate = null;
     UsbSerialPort usbSerialPort;
+    int HWVersion;
     TextView mTextView;
     TXProgress progress = new TXProgress(0, "");
 
-    ESLBlaster(UsbSerialPort usbserialport, ProgressBar progressBar, TextView textView, AsyncResponseTX asyncResponse) {
-        delegate = asyncResponse;
-        mProgressBar = progressBar;
-        mTextView = textView;
-        usbSerialPort = usbserialport;
+    ESLBlaster(UsbSerialPort usbserialport, int HWVersion, ProgressBar progressBar, TextView textView, AsyncResponseTX asyncResponse) {
+        this.delegate = asyncResponse;
+        this.mProgressBar = progressBar;
+        this.mTextView = textView;
+        this.usbSerialPort = usbserialport;
+        this.HWVersion = HWVersion;
     }
     @Override
     protected void onProgressUpdate(TXProgress... progress) {
@@ -42,6 +41,8 @@ public class ESLBlaster extends AsyncTask<List<IRFrame>, TXProgress, Boolean> {
     @Override
     protected Boolean doInBackground(List<IRFrame>... frames) {
         int i = 1;
+        boolean PP16 = (HWVersion >= 2);
+        Log.d("PHX", "PHY mode: " + (PP16 ? "PP16" : "PP4"));
         int cnt = frames[0].size();
         for (IRFrame frame : frames[0]) {
             /*try {
@@ -51,14 +52,19 @@ public class ESLBlaster extends AsyncTask<List<IRFrame>, TXProgress, Boolean> {
                 return false;
             }*/
 
-            List<Byte> list = frame.getRawData(false);
+            List<Byte> list = frame.getRawData(PP16);
 
             byte[] data = new byte[list.size() + 5 + 1];
             data[0] = (byte)'L';
             data[1] = (byte)list.size();
-            data[2] = (byte)frame.delay;            // Delay between repeats
-            data[3] = (byte)(frame.repeats & 255);  // Number of repeats
-            data[4] = (byte)(frame.repeats >> 8);
+            data[2] = (byte)frame.delay;        // Delay between repeats
+            int repeats = frame.repeats;
+            if (repeats > 32767)
+                repeats = 32767;                // Cap to 15 bits because FW V2 and up uses MSB to indicate PP16 protocol
+            if (PP16)
+                repeats |= 0x8000;
+            data[3] = (byte)(repeats & 255);    // Number of repeats
+            data[4] = (byte)(repeats >> 8);
             for (int c = 0; c < list.size(); c++)
                 data[c + 5] = list.get(c).byteValue();
             data[data.length - 1] = (byte)'T';
@@ -80,10 +86,10 @@ public class ESLBlaster extends AsyncTask<List<IRFrame>, TXProgress, Boolean> {
                     publishProgress(progress);
                 }
 
-                // 10s timeout should be enough
+                // 20s timeout should be enough
                 // Split the timeout to check if task was cancelled during the wait
                 int w = 0;
-                for (w = 0; w < 10; w++) {
+                for (w = 0; w < 20; w++) {
                     if (isCancelled()) {
                         endTX();
                         return false;
@@ -94,7 +100,7 @@ public class ESLBlaster extends AsyncTask<List<IRFrame>, TXProgress, Boolean> {
                             break;
                     };
                 }
-                if (w == 10) {
+                if (w == 20) {
                     Log.d("PHX", "Comm timeout");
                     endTX();   // Timed out
                     return false;

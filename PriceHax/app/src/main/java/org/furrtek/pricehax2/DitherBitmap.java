@@ -2,7 +2,6 @@ package org.furrtek.pricehax2;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 public class DitherBitmap {
     // Atkinson dither might give better results on ESLs

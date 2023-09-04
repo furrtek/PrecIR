@@ -5,6 +5,18 @@
         xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    <TextView
+            android:text="Color mode:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView2"
+            app:layout_constraintStart_toStartOf="@+id/radiogroup"
+            app:layout_constraintTop_toBottomOf="@+id/buttonLoadImg" android:layout_marginTop="10dp"/>
+    <TextView
+            android:text="Dithering:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView3"
+            app:layout_constraintStart_toStartOf="@+id/radiogroup2"
+            app:layout_constraintTop_toBottomOf="@+id/radiogroup" android:layout_marginTop="10dp"/>
     <Button
             android:id="@+id/buttonTXImage"
             android:layout_width="wrap_content"
@@ -23,8 +35,8 @@
             android:text="Auto TX on scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/switchTXAuto"
-            app:layout_constraintStart_toStartOf="@+id/radiogroup"
-            app:layout_constraintTop_toBottomOf="@+id/radiogroup" android:layout_marginTop="10dp"/>
+            app:layout_constraintStart_toStartOf="@+id/radiogroup2"
+            app:layout_constraintTop_toBottomOf="@+id/radiogroup2" android:layout_marginTop="10dp"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
@@ -151,10 +163,10 @@
     <RadioGroup
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/buttonLoadImg"
             app:layout_constraintStart_toEndOf="@+id/constraintLayout" app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintEnd_toEndOf="parent" android:id="@+id/radiogroup"
-            android:checkedButton="@id/radioBW" android:layout_marginTop="10dp">
+            android:checkedButton="@id/radioBW" app:layout_constraintTop_toBottomOf="@+id/textView2"
+    >
         <RadioButton
                 android:text="B/W"
                 android:layout_width="match_parent"
@@ -163,6 +175,21 @@
                 android:text="B/W/R"
                 android:layout_width="match_parent"
                 android:layout_height="40dp" android:id="@+id/radioBWR"/>
+    </RadioGroup>
+    <RadioGroup
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@+id/constraintLayout" app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintEnd_toEndOf="parent" android:id="@+id/radiogroup2"
+            android:checkedButton="@id/radio_dither_off" app:layout_constraintTop_toBottomOf="@+id/textView3">
+        <RadioButton
+                android:text="Pretty but slow"
+                android:layout_width="match_parent"
+                android:layout_height="40dp" android:id="@+id/radio_dither_on"/>
+        <RadioButton
+                android:text="Ugly but fast"
+                android:layout_width="match_parent"
+                android:layout_height="40dp" android:id="@+id/radio_dither_off"/>
     </RadioGroup>
     <ProgressBar
             style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"

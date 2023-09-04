@@ -30,18 +30,17 @@ public class CameraPreview extends SurfaceView implements Callback {
         //setCameraDisplayOrientation((Activity) this.context, this.mCamera);
     }
 
-    //public CameraPreview(Context context, Camera camera, PreviewCallback previewCb, AutoFocusCallback autoFocusCb) {
     public CameraPreview(Context context, PreviewCallback previewCb, AutoFocusCallback autoFocusCb) {
         super(context);
         this.context = context;
-
-        this.mCamera = getBackCamera();
         this.previewCallback = previewCb;
         this.autoFocusCallback = autoFocusCb;
         this.mHolder.addCallback(this);
-        //this.mHolder.setType(3);
+    }
 
-        //this.cameraId = getBackCameraId();
+    public void surfaceCreated(SurfaceHolder holder) {
+        this.mCamera = getBackCamera();
+        //this.mHolder.setType(3);
 
         // The old mode uses the onAutoFocus function and makes a timer to try to focus periodically.
         // The drawback is the hunting of the camera.
@@ -51,24 +50,15 @@ public class CameraPreview extends SurfaceView implements Callback {
         this.oldAutoFocusMode = false;
         if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-        }
-        else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+        } else if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-        }
-        else {
+        } else {
             this.oldAutoFocusMode = true;
         }
 
         this.mCamera.setParameters(params);
-        //this.mCamera.setPreviewCallback(previewCb);
         this.mCamera.startPreview();
-    }
 
-    public boolean isOldAutoFocusMode() {
-        return this.oldAutoFocusMode;
-    }
-
-    public void surfaceCreated(SurfaceHolder holder) {
         try {
             if (this.mCamera != null) {
                 this.mCamera.setPreviewDisplay(holder);
@@ -79,6 +69,14 @@ public class CameraPreview extends SurfaceView implements Callback {
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
+        try {
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mCamera.release();
+            mCamera = null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -94,9 +92,8 @@ public class CameraPreview extends SurfaceView implements Callback {
                 this.mCamera.setPreviewCallback(this.previewCallback);
                 this.mCamera.startPreview();
 
-                if (this.oldAutoFocusMode) {
+                if (this.oldAutoFocusMode)
                     this.mCamera.autoFocus(this.autoFocusCallback);
-                }
 
             } catch (Exception e2) {
                 Log.d("DBG", "Error starting camera preview: " + e2.getMessage());
@@ -128,7 +125,6 @@ public class CameraPreview extends SurfaceView implements Callback {
         switch (rotation) {
             case Surface.ROTATION_0:
                 degrees = 90;
-                //params.setPreviewSize(height, width);
                 break;
             case Surface.ROTATION_90: degrees = 0; break;
             case Surface.ROTATION_180: degrees = 0; break;
@@ -136,18 +132,10 @@ public class CameraPreview extends SurfaceView implements Callback {
         }
         Log.d("DBG", "Preview surface rotation: " + degrees);
 
-        int result;
-        result = degrees;
-        /*if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
-        }*/
         Camera.Size size = params.getPreviewSize();
         Log.d("DBG", "getPreviewSize: " + size.width + "," + size.height);
 
-        camera.setDisplayOrientation(result);
+        camera.setDisplayOrientation(degrees);
         camera.setParameters(params);
     }
 }

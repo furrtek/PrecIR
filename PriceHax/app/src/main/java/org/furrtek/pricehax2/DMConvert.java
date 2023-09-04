@@ -1,6 +1,7 @@
 package org.furrtek.pricehax2;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ProgressBar;
@@ -13,7 +14,8 @@ import java.util.List;
 
 import static org.furrtek.pricehax2.DitherBitmap.floydSteinbergDithering;
 
-public class DMConvert extends AsyncTask<Bitmap, Integer, DMImage> {
+public class DMConvert extends AsyncTask<DMConvertParams, Integer, DMImage> {
+    // This does the color conversion, dithering, encoding and compression.
     private ImageView mImageView;
     private ProgressBar mProgressBar;
     AsyncResponse delegate = null;
@@ -28,91 +30,85 @@ public class DMConvert extends AsyncTask<Bitmap, Integer, DMImage> {
     }
     @Override
     protected void onPostExecute(DMImage dmimage) {
-        Log.d("PHX", "Convert done, bytestream size: " + dmimage.byteStreamBW.size());
+        Log.d("PHX", "Convert done, BW bytestream size: " + dmimage.byteStreamBW.size());
         delegate.processFinish(dmimage);
     }
     @Override
-    protected DMImage doInBackground(Bitmap... selectedImage) {
-        int x, y, wi, hi;
-        int w, h;
+    protected DMImage doInBackground(DMConvertParams... params) {
+        int x, y, w, h;
         int pixel;
         int idx = 0;
         Bitmap imageBW, imageBWR;
-        w = selectedImage[0].getWidth();
-        h = selectedImage[0].getHeight();
+        Bitmap imageIn = params[0].imageIn;
+        boolean dithering = params[0].dithering;
+
+        w = imageIn.getWidth();
+        h = imageIn.getHeight();
         DMImage dmimage = new DMImage(w, h);
 
-        /*if (PLType == 1318) {
-            w = 0xD0;
-            h = 0x70;
-        } else {
-            w = 172;
-            h = 72;
-        }*/
-        wi = w;
-        hi = h;
+        BitSet bitstreamBW = new BitSet(w * h);       // One plane
+        BitSet bitstreamBWR = new BitSet(w * h * 2);  // Two planes
 
-        BitSet bitstreamBW = new BitSet(wi * hi);
-        BitSet bitstreamBWR = new BitSet(wi * hi * 2);
-
-        Bitmap scaledimage = selectedImage[0];
-
-        //Convert to BW
-        Log.d("PHX", "Convert to BW");
-        imageBW = floydSteinbergDithering(scaledimage, false);
-        //dmimage.bitmapBW = imageBW;
+        // Convert to BW
+        imageBW = dithering ? floydSteinbergDithering(imageIn, false) : imageIn;
         for (y = 0; y < h; y++) {
             for (x = 0; x < w; x++, idx++) {
                 pixel = imageBW.getPixel(x, y);
-                if (Color.red(pixel) > 0)
+                if (Color.red(pixel) > 127) {
                     bitstreamBW.set(idx);
-                else
+                    pixel = Color.WHITE;
+                } else {
                     bitstreamBW.clear(idx);
+                    pixel = Color.BLACK;
+                }
                 dmimage.bitmapBW.setPixel(x, y, pixel);
             }
         }
 
         //Convert to BWR
-        Log.d("PHX", "Convert to BWR");
-        imageBWR = floydSteinbergDithering(scaledimage, true);
-        //dmimage.bitmapBWR = imageBWR;
+        imageBWR = dithering ? floydSteinbergDithering(imageIn, true) : imageIn;
         idx = 0;
-        int idxr = w * h;
+        int idxr = w * h;   // Offset index for red layer
         for (y = 0; y < h; y++) {
             for (x = 0; x < w; x++, idx++, idxr++) {
                 pixel = imageBWR.getPixel(x, y);
-                if (Color.red(pixel) > 0) {
-                    if (Color.green(pixel) > 0) {
+                if (Color.red(pixel) > 127) {
+                    if (Color.green(pixel) > 127) {
                         bitstreamBWR.set(idx);   // White
                         bitstreamBWR.set(idxr);
-                        dmimage.bitmapBWR.setPixel(x, y, 0xFFFFFFFF);
+                        pixel = Color.WHITE;
+                        //dmimage.bitmapBWR.setPixel(x, y, 0xFFFFFFFF);
                     } else {
                         bitstreamBWR.clear(idx);   // Red
                         bitstreamBWR.clear(idxr);
-                        dmimage.bitmapBWR.setPixel(x, y, 0xFFFF0000);
+                        pixel = Color.RED;
+                        //dmimage.bitmapBWR.setPixel(x, y, 0xFFFF0000);
                     }
                 } else {
                     bitstreamBWR.clear(idx); // Black
                     bitstreamBWR.set(idxr);
-                    dmimage.bitmapBWR.setPixel(x, y, 0xFF000000);
+                    pixel = Color.BLACK;
+                    //dmimage.bitmapBWR.setPixel(x, y, 0xFF000000);
                 }
+                dmimage.bitmapBWR.setPixel(x, y, pixel);
             }
         }
 
+        // Compress
         BitSet bitstreamBW_RLE = RLECompress(bitstreamBW);
         BitSet bitstreamBWR_RLE = RLECompress(bitstreamBWR);
-
         publishProgress(90);
 
+        // Pack to bytes
         dmimage.byteStreamBW = bitstreamBytes(bitstreamBW_RLE);
         dmimage.byteStreamBWR = bitstreamBytes(bitstreamBWR_RLE);
-
         publishProgress(100);
 
         return dmimage;
     }
 
     private List<Byte> bitstreamBytes(BitSet bitstream) {
+        // Pack bitstream to bytes
         List<Byte> result = new ArrayList<Byte>();
         byte[] bytes = bitstream.toByteArray();
         for (byte b : bytes) {
@@ -129,9 +125,9 @@ public class DMConvert extends AsyncTask<Bitmap, Integer, DMImage> {
         int idx = result.size();
         int klp = idx % 20;
         if (klp > 0) klp = 20 - klp;
-        Log.d("PHX", String.format("Padding %d to %d", idx, idx + klp));
         for (int bsc = 0; bsc < klp; bsc++)
             result.add(new Byte((byte)0));
+        Log.d("PHX", String.format("Padded %d to %d", idx, idx + klp));
 
         return result;
     }
@@ -144,7 +140,6 @@ public class DMConvert extends AsyncTask<Bitmap, Integer, DMImage> {
         List<Integer> RLErun = new ArrayList<Integer>();
 
         // RLE compress
-        Log.d("PHX", String.format("RLE compress, raw size = %d", bitstream.length()));
         for (int m = 1; m <= j; m++) {
             n = bitstream.get(m);
             if (n == p) {
@@ -161,7 +156,7 @@ public class DMConvert extends AsyncTask<Bitmap, Integer, DMImage> {
         BitSet bitstreamRLE = new BitSet();
         bitstreamRLE.set(0, bitstream.get(0));
 
-        Log.d("PHX", "Gen unary coded runs");
+        // Gen unary coded runs
         int idx = 1;
         for (int cnts : RLErun) {
             bs = Integer.toBinaryString(cnts);
@@ -176,11 +171,13 @@ public class DMConvert extends AsyncTask<Bitmap, Integer, DMImage> {
             }
         }
 
-        String dbg = "";
+        Log.d("PHX", String.format("RLE compress, %d -> %d", bitstream.length(), bitstreamRLE.length()));
+
+        /*String dbg = "";
         for (int i = 0; i < 256; i++) {
             dbg += (bitstreamRLE.get(i) ? "1" : "0");
         }
-        Log.d("PHX", dbg);
+        Log.d("PHX", dbg);*/
         return bitstreamRLE;
     }
 }
