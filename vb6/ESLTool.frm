@@ -3,20 +3,97 @@ Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
 Begin VB.Form FrmMain 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "ESLTool"
-   ClientHeight    =   3315
+   ClientHeight    =   3090
    ClientLeft      =   150
    ClientTop       =   435
-   ClientWidth     =   5670
+   ClientWidth     =   5535
    Icon            =   "ESLTool.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
-   ScaleHeight     =   221
+   ScaleHeight     =   206
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   378
+   ScaleWidth      =   369
    StartUpPosition =   2  'CenterScreen
-   Begin MSComDlg.CommonDialog comdlg 
+   Begin VB.Frame FrameRight 
+      BorderStyle     =   0  'None
+      Caption         =   "Frame1"
+      Height          =   2775
       Left            =   3960
-      Top             =   1200
+      TabIndex        =   1
+      Top             =   0
+      Width           =   1695
+      Begin VB.CommandButton CmdUpdate 
+         Caption         =   "Update ESL"
+         Height          =   495
+         Left            =   120
+         TabIndex        =   5
+         Top             =   2160
+         Width           =   1335
+      End
+      Begin VB.ComboBox ComboPage 
+         Height          =   315
+         ItemData        =   "ESLTool.frx":10CA
+         Left            =   480
+         List            =   "ESLTool.frx":10CC
+         TabIndex        =   4
+         Text            =   "0"
+         Top             =   0
+         Width           =   975
+      End
+      Begin VB.TextBox TxtPosX 
+         Height          =   285
+         Left            =   240
+         MaxLength       =   3
+         TabIndex        =   3
+         Text            =   "0"
+         Top             =   720
+         Width           =   615
+      End
+      Begin VB.TextBox TxtPosY 
+         Height          =   285
+         Left            =   240
+         MaxLength       =   3
+         TabIndex        =   2
+         Text            =   "0"
+         Top             =   1080
+         Width           =   615
+      End
+      Begin VB.Label Label3 
+         Caption         =   "Position from top-left:"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   9
+         Top             =   480
+         Width           =   1575
+      End
+      Begin VB.Label Label4 
+         Caption         =   "X:"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   8
+         Top             =   780
+         Width           =   255
+      End
+      Begin VB.Label Label5 
+         Caption         =   "Y:"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   7
+         Top             =   1140
+         Width           =   255
+      End
+      Begin VB.Label Label6 
+         Caption         =   "Page:"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   6
+         Top             =   60
+         Width           =   495
+      End
+   End
+   Begin MSComDlg.CommonDialog comdlg 
+      Left            =   0
+      Top             =   0
       _ExtentX        =   847
       _ExtentY        =   847
       _Version        =   393216
@@ -24,18 +101,8 @@ Begin VB.Form FrmMain
    End
    Begin VB.Timer Timer1 
       Interval        =   1000
-      Left            =   4200
-      Top             =   480
-   End
-   Begin VB.ComboBox ComboPage 
-      Height          =   315
-      ItemData        =   "ESLTool.frx":10CA
-      Left            =   4200
-      List            =   "ESLTool.frx":10CC
-      TabIndex        =   5
-      Text            =   "Page"
-      Top             =   120
-      Width           =   1335
+      Left            =   480
+      Top             =   0
    End
    Begin VB.PictureBox Picture1 
       Appearance      =   0  'Flat
@@ -49,42 +116,43 @@ Begin VB.Form FrmMain
       ScaleHeight     =   112
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   208
-      TabIndex        =   3
+      TabIndex        =   0
       ToolTipText     =   "Click in picture to set update position"
       Top             =   120
       Width           =   3120
    End
-   Begin VB.TextBox Text1 
-      Height          =   285
+   Begin VB.Frame FrameBot 
+      BorderStyle     =   0  'None
+      Caption         =   "Frame1"
+      Height          =   975
       Left            =   120
-      MaxLength       =   17
-      TabIndex        =   1
-      Top             =   2400
-      Width           =   2175
-   End
-   Begin VB.CommandButton Command1 
-      Caption         =   "Update ESL"
-      Height          =   495
-      Left            =   4200
-      TabIndex        =   0
-      Top             =   2280
-      Width           =   1335
-   End
-   Begin VB.Label Label2 
-      Caption         =   "Status: Ready"
-      Height          =   255
-      Left            =   120
-      TabIndex        =   4
-      Top             =   2880
-      Width           =   5415
-   End
-   Begin VB.Label Label1 
-      Caption         =   "ESL barcode data:"
-      Height          =   255
-      Left            =   120
-      TabIndex        =   2
-      Top             =   2160
-      Width           =   1455
+      TabIndex        =   10
+      Top             =   2025
+      Width           =   5250
+      Begin VB.TextBox Text1 
+         Height          =   285
+         Left            =   0
+         MaxLength       =   17
+         TabIndex        =   11
+         Top             =   240
+         Width           =   2175
+      End
+      Begin VB.Label Label1 
+         Caption         =   "ESL barcode data:"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   13
+         Top             =   0
+         Width           =   1455
+      End
+      Begin VB.Label Label2 
+         Caption         =   "Status: Ready"
+         Height          =   255
+         Left            =   0
+         TabIndex        =   12
+         Top             =   720
+         Width           =   5295
+      End
    End
    Begin VB.Menu menu_file 
       Caption         =   "&File"
@@ -130,7 +198,7 @@ End Function
 
 Sub RecordRLERun(ByVal RunCount As Integer)
     Dim Bits(16) As Integer
-    Dim B As Integer, i As Integer
+    Dim b As Integer, i As Integer
     
     ' Convert to binary and count required bits
     i = 0
@@ -141,27 +209,27 @@ Sub RecordRLERun(ByVal RunCount As Integer)
     Wend
     
     ' Unary-code the value length - 1
-    For B = 0 To i - 1 - 1
+    For b = 0 To i - 1 - 1
         ArrayAppendByte Compressed, 0
-    Next B
+    Next b
     ' Write bits
     If i > 0 Then
-        For B = 0 To i - 1
-            ArrayAppendByte Compressed, CByte(Bits(i - B - 1))
-        Next B
+        For b = 0 To i - 1
+            ArrayAppendByte Compressed, CByte(Bits(i - b - 1))
+        Next b
     End If
 End Sub
 
 Sub ArrayAppendByte(arr() As Byte, ByVal v As Byte)
-    Dim NewSize As Integer
+    Dim NewSize As Double
     
     NewSize = UBound(arr) + 1
     ReDim Preserve arr(NewSize)
     arr(NewSize) = v
 End Sub
 
-Private Sub Command1_Click()
-    Dim Pixels(65535) As Byte
+Private Sub CmdUpdate_Click()
+    Dim Pixels(307200) As Byte  ' 640x480
     Dim RunPixel As Byte
     Dim RunCount As Integer, BitsPerFrame As Integer
     Dim ImgWidth As Integer, ImgHeight As Integer
@@ -171,10 +239,10 @@ Private Sub Command1_Click()
     Dim DMPage As Byte
     Dim image_bit_data() As Byte
     Dim Dot As Double, SizeRaw As Double, SizeCompressed As Double, DataSize As Double
-    Dim R As Integer, G As Integer, B As Integer
+    Dim R As Integer, G As Integer, b As Integer
     Dim Px As Integer, Py As Integer, c As Double, i As Double, fr As Integer, bi As Integer
     Dim v As Integer
-    Dim Padding As Integer, PaddedDataSize As Integer, DataFrameCount As Integer
+    Dim Padding As Integer, PaddedDataSize As Double, DataFrameCount As Integer
     
     FrameCount = 0
 
@@ -193,6 +261,9 @@ Private Sub Command1_Click()
     ImgHeight = Picture1.Height
     SizeRaw = CDbl(ImgWidth) * CDbl(ImgHeight)
 
+    Label2.Caption = "Encoding image, please wait..."
+    DoEvents
+    
     ' Convert image to 1BPP
     i = 0
     For Py = 0 To ImgHeight - 1
@@ -201,9 +272,9 @@ Private Sub Command1_Click()
             
             R = (Dot And 255) * 0.21
             G = ((Dot \ 256) And 255) * 0.72
-            B = ((Dot \ 65536) And 255) * 0.07
+            b = ((Dot \ 65536) And 255) * 0.07
             
-            If (R + G + B) > 127 Then
+            If (R + G + b) > 127 Then
                 Dot = 1
             Else
                 Dot = 0
@@ -258,6 +329,11 @@ Private Sub Command1_Click()
 
     PaddedDataSize = DataSize + Padding
     DataFrameCount = PaddedDataSize \ BitsPerFrame
+    
+    If PaddedDataSize > 65535 Or DataFrameCount > 255 Then
+        MsgBox "The data size to transmit (" & Trim(Str(DataFrameCount)) & " frames) exceeds what the IR protocol can support (256)." & vbCrLf & "Please transmit your image in multiple smaller blocks with different positions.", vbExclamation
+        Exit Sub
+    End If
 
     ' Wake up frame
     StackFrame make_ping_frame(PLID, 200)
@@ -270,8 +346,8 @@ Private Sub Command1_Click()
     frame_append_byte ParamFrame, DMPage
     frame_append_word ParamFrame, CDbl(ImgWidth)
     frame_append_word ParamFrame, CDbl(ImgHeight)
-    frame_append_word ParamFrame, 0 ' posx
-    frame_append_word ParamFrame, 0 ' posy
+    frame_append_word ParamFrame, CDbl(Val(TxtPosX.Text))
+    frame_append_word ParamFrame, CDbl(Val(TxtPosY.Text))
     frame_append_word ParamFrame, &H0   ' Keycode
     frame_append_byte ParamFrame, &H88  ' 0x80 = update, 0x08 = set base page
     frame_append_word ParamFrame, &H0   ' Enabled pages (bitmap)
@@ -328,7 +404,7 @@ Sub TransmitESLBlaster()
     Dim DataSize As Integer, BufferLen As Integer
     
     Timer1.Enabled = False
-    Command1.Enabled = False
+    CmdUpdate.Enabled = False
     
     ' DEBUG
     'Open "d:\out_eslb.txt" For Binary As #1
@@ -369,7 +445,7 @@ Sub TransmitESLBlaster()
     ' DEBUG
     'Close #1
     
-    Command1.Enabled = True
+    CmdUpdate.Enabled = True
     Timer1.Enabled = True
 End Sub
 
@@ -377,10 +453,6 @@ Function HexPad(ByVal v As Byte) As String
     HexPad = Hex(v)
     If Len(HexPad) = 1 Then HexPad = "0" & HexPad
 End Function
-
-Private Sub Form_Click()
-
-End Sub
 
 Private Sub Form_Load()
     Dim c As Integer
@@ -392,7 +464,16 @@ Private Sub Form_Load()
     Next c
     ComboPage.ListIndex = 0
     
+    Picture1.Line (0, 0)-(Picture1.Width, Picture1.Height), vbBlack
+    Picture1.Line (Picture1.Width, 0)-(0, Picture1.Height), vbBlack
+    AutoResize
+    
     Text1.Text = Left(INIRead("ESLTool", "LastPLID", "ESLTool.ini"), 17)
+End Sub
+
+Private Sub Form_Resize()
+    FrameRight.Left = FrmMain.ScaleWidth - FrameRight.Width
+    FrameBot.Top = FrmMain.ScaleHeight - FrameBot.Height
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
@@ -400,11 +481,45 @@ Private Sub Form_Unload(Cancel As Integer)
     INIWrite "ESLTool", "LastPLID", Text1.Text, "ESLTool.ini"
 End Sub
 
+Function Max(ByVal a As Integer, ByVal b As Integer)
+    If a >= b Then
+        Max = a
+    Else
+        Max = b
+    End If
+End Function
+
+Private Sub AutoResize()
+    FrmMain.Width = Max(Picture1.Width + 160, 350) * 15
+    FrmMain.Height = Max(Picture1.Height + 130, 250) * 15
+End Sub
+
 Private Sub menu_openimg_Click()
     On Error GoTo errchk
+    
+    Dim ratio As Single
+    Dim resized As Boolean
+    
     comdlg.ShowOpen
     
     Picture1.Picture = LoadPicture(comdlg.FileName)
+    
+    ratio = Picture1.Width / Picture1.Height
+    
+    If Picture1.Width > 640 Then
+        resized = True
+        Picture1.Width = 640
+        Picture1.Height = 640 / ratio
+    End If
+    If Picture1.Height > 480 Then
+        resized = True
+        Picture1.Height = 480
+        Picture1.Width = 480 * ratio
+    End If
+    
+    If resized = True Then MsgBox "The image was resized to fit into 640*480.", vbInformation
+    
+    AutoResize
     
     Exit Sub
 errchk:
@@ -448,7 +563,7 @@ End Sub
 
 Sub SetBlasterPresent(ByVal v As Boolean)
     BlasterPresent = v
-    Command1.Enabled = v
+    CmdUpdate.Enabled = v
 End Sub
 
 Function TestBlasterPresence() As Boolean
