@@ -14,20 +14,118 @@ Begin VB.Form FrmMain
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   369
    StartUpPosition =   2  'CenterScreen
+   Begin VB.PictureBox PictBox 
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      AutoSize        =   -1  'True
+      BackColor       =   &H80000005&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   2235
+      Index           =   4
+      Left            =   120
+      ScaleHeight     =   149
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   248
+      TabIndex        =   20
+      Top             =   120
+      Visible         =   0   'False
+      Width           =   3720
+   End
+   Begin VB.PictureBox PictBox 
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      AutoSize        =   -1  'True
+      BackColor       =   &H80000005&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   2235
+      Index           =   3
+      Left            =   120
+      ScaleHeight     =   149
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   248
+      TabIndex        =   19
+      Top             =   120
+      Visible         =   0   'False
+      Width           =   3720
+   End
+   Begin VB.PictureBox PictBox 
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      AutoSize        =   -1  'True
+      BackColor       =   &H80000005&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   2235
+      Index           =   2
+      Left            =   120
+      ScaleHeight     =   149
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   248
+      TabIndex        =   18
+      Top             =   120
+      Visible         =   0   'False
+      Width           =   3720
+   End
+   Begin VB.PictureBox PictBox 
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      AutoSize        =   -1  'True
+      BackColor       =   &H80000005&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   2235
+      Index           =   1
+      Left            =   120
+      ScaleHeight     =   149
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   248
+      TabIndex        =   17
+      ToolTipText     =   "Click in picture to set update position"
+      Top             =   120
+      Visible         =   0   'False
+      Width           =   3720
+   End
    Begin VB.Frame FrameRight 
       BorderStyle     =   0  'None
       Caption         =   "Frame1"
-      Height          =   2775
+      Height          =   2895
       Left            =   3960
       TabIndex        =   1
-      Top             =   0
+      Top             =   120
       Width           =   1695
+      Begin VB.CheckBox CheckDither 
+         Caption         =   "Dithering"
+         Height          =   255
+         Left            =   120
+         TabIndex        =   16
+         Top             =   1680
+         Width           =   1335
+      End
+      Begin VB.CheckBox CheckPreview 
+         Caption         =   "Preview"
+         Height          =   255
+         Left            =   120
+         TabIndex        =   15
+         Top             =   1920
+         Value           =   1  'Checked
+         Width           =   1335
+      End
+      Begin VB.CheckBox CheckColor 
+         Caption         =   "Color ESL"
+         Height          =   255
+         Left            =   120
+         TabIndex        =   14
+         Top             =   1440
+         Width           =   1335
+      End
       Begin VB.CommandButton CmdUpdate 
          Caption         =   "Update ESL"
          Height          =   495
          Left            =   120
          TabIndex        =   5
-         Top             =   2160
+         Top             =   2280
          Width           =   1335
       End
       Begin VB.ComboBox ComboPage 
@@ -97,29 +195,31 @@ Begin VB.Form FrmMain
       _ExtentX        =   847
       _ExtentY        =   847
       _Version        =   393216
-      Filter          =   "*.bmp"
+      CancelError     =   -1  'True
+      Filter          =   "Graphic Files (*.bmp;*.gif;*.jpg)|*.bmp;*.gif;*.jpg|"
    End
    Begin VB.Timer Timer1 
       Interval        =   1000
       Left            =   480
       Top             =   0
    End
-   Begin VB.PictureBox Picture1 
+   Begin VB.PictureBox PictBox 
       Appearance      =   0  'Flat
       AutoRedraw      =   -1  'True
       AutoSize        =   -1  'True
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   1680
+      Height          =   2235
+      Index           =   0
       Left            =   120
-      ScaleHeight     =   112
+      ScaleHeight     =   149
       ScaleMode       =   3  'Pixel
-      ScaleWidth      =   208
+      ScaleWidth      =   248
       TabIndex        =   0
       ToolTipText     =   "Click in picture to set update position"
       Top             =   120
-      Width           =   3120
+      Width           =   3720
    End
    Begin VB.Frame FrameBot 
       BorderStyle     =   0  'None
@@ -170,6 +270,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Public BlasterPresent As Boolean
+Dim PixelsBWR() As Byte
+Dim PixelsBWRD() As Byte
 
 Function GetPLID(Barcode As String) As Byte()
     On Error GoTo ErrHandler
@@ -188,7 +290,7 @@ Function GetPLID(Barcode As String) As Byte()
     Exit Function
     
 ErrHandler:
-    MsgBox "Invalid barcode data.", vbExclamation
+    MsgBox "The barcode is invalid.", vbExclamation
     RetData(0) = 255
     RetData(1) = 255
     RetData(2) = 255
@@ -196,9 +298,9 @@ ErrHandler:
     GetPLID = RetData
 End Function
 
-Sub RecordRLERun(ByVal RunCount As Integer)
+Sub RecordRLERun(ByVal RunCount As Long)
     Dim Bits(16) As Integer
-    Dim b As Integer, i As Integer
+    Dim B As Integer, i As Integer
     
     ' Convert to binary and count required bits
     i = 0
@@ -209,14 +311,14 @@ Sub RecordRLERun(ByVal RunCount As Integer)
     Wend
     
     ' Unary-code the value length - 1
-    For b = 0 To i - 1 - 1
+    For B = 0 To i - 1 - 1
         ArrayAppendByte Compressed, 0
-    Next b
+    Next B
     ' Write bits
     If i > 0 Then
-        For b = 0 To i - 1
-            ArrayAppendByte Compressed, CByte(Bits(i - b - 1))
-        Next b
+        For B = 0 To i - 1
+            ArrayAppendByte Compressed, CByte(Bits(i - B - 1))
+        Next B
     End If
 End Sub
 
@@ -228,10 +330,53 @@ Sub ArrayAppendByte(arr() As Byte, ByVal v As Byte)
     arr(NewSize) = v
 End Sub
 
+Private Sub CheckColor_Click()
+    UpdateView
+End Sub
+
+Private Sub CheckDither_Click()
+    UpdateView
+End Sub
+
+Private Sub CheckPreview_Click()
+    UpdateView
+End Sub
+
+Private Sub UpdateView()
+    Dim c As Integer
+    
+    For c = 0 To 4
+        PictBox(c).Visible = False
+    Next c
+    ' 0: Original
+    ' 1: BW
+    ' 2: BWR
+    ' 3: BW dithered
+    ' 4: BWR dithered
+    
+    If CheckPreview.Value = vbChecked Then
+        If CheckDither.Value = vbChecked Then
+            If CheckColor.Value = vbChecked Then
+                PictBox(4).Visible = True
+            Else
+                PictBox(3).Visible = True
+            End If
+        Else
+            If CheckColor.Value = vbChecked Then
+                PictBox(2).Visible = True
+            Else
+                PictBox(1).Visible = True
+            End If
+        End If
+    Else
+        PictBox(0).Visible = True
+    End If
+End Sub
+
 Private Sub CmdUpdate_Click()
-    Dim Pixels(307200) As Byte  ' 640x480
+    'Dim Pixels(307200) As Boolean  ' 640x480
     Dim RunPixel As Byte
-    Dim RunCount As Integer, BitsPerFrame As Integer
+    Dim RunCount As Long, BitsPerFrame As Integer
     Dim ImgWidth As Integer, ImgHeight As Integer
     Dim ParamFrame As frame_t, DataFrame As frame_t
     Dim PLID() As Byte
@@ -239,15 +384,24 @@ Private Sub CmdUpdate_Click()
     Dim DMPage As Byte
     Dim image_bit_data() As Byte
     Dim Dot As Double, SizeRaw As Double, SizeCompressed As Double, DataSize As Double
-    Dim R As Integer, G As Integer, b As Integer
+    Dim R As Integer, G As Integer, B As Integer
     Dim Px As Integer, Py As Integer, c As Double, i As Double, fr As Integer, bi As Integer
-    Dim v As Integer
+    Dim v As Integer, checksum As Integer
     Dim Padding As Integer, PaddedDataSize As Double, DataFrameCount As Integer
     
     FrameCount = 0
-
+    
+    ' Check barcode validity
     If Len(Text1.Text) <> 17 Then
         MsgBox "The barcode data must be exactly 17 characters.", vbExclamation
+        Exit Sub
+    End If
+    checksum = 0
+    For c = 1 To 16
+        checksum = checksum + Asc(Mid(Text1.Text, c, 1))
+    Next c
+    If Trim(Str(checksum Mod 10)) <> Mid(Text1.Text, 17, 1) Then
+        MsgBox "The barcode is invalid.", vbExclamation
         Exit Sub
     End If
 
@@ -257,48 +411,39 @@ Private Sub CmdUpdate_Click()
 
     DMPage = ComboPage.ListIndex
     
-    ImgWidth = Picture1.Width
-    ImgHeight = Picture1.Height
+    ImgWidth = PictBox(0).Width
+    ImgHeight = PictBox(0).Height
     SizeRaw = CDbl(ImgWidth) * CDbl(ImgHeight)
 
     Label2.Caption = "Encoding image, please wait..."
     DoEvents
     
-    ' Convert image to 1BPP
-    i = 0
-    For Py = 0 To ImgHeight - 1
-        For Px = 0 To ImgWidth - 1
-            Dot = Picture1.Point(Px, Py)
-            
-            R = (Dot And 255) * 0.21
-            G = ((Dot \ 256) And 255) * 0.72
-            b = ((Dot \ 65536) And 255) * 0.07
-            
-            If (R + G + b) > 127 Then
-                Dot = 1
-            Else
-                Dot = 0
-            End If
-            
-            Picture1.PSet (Px, Py), RGB(Dot * 255, Dot * 255, Dot * 255)
-            
-            Pixels(i) = Dot
-            i = i + 1
-        Next Px
-    Next Py
+    ' Select between dithered data or not
+    If CheckDither.Value = vbChecked Then
+        image_bit_data = PixelsBWRD
+    Else
+        image_bit_data = PixelsBWR
+    End If
     
+    ' Select between color data or not
+    If CheckColor.Value = vbChecked Then
+        DataSize = CDbl(ImgWidth) * ImgHeight * 2
+    Else
+        DataSize = CDbl(ImgWidth) * ImgHeight
+    End If
+        
     ' Try some RLE compression
     ReDim Compressed(0)
-    RunPixel = Pixels(0)
+    RunPixel = image_bit_data(0)
     RunCount = 1
     Compressed(0) = RunPixel
-    For c = 1 To i
-        If Pixels(c) = RunPixel Then
+    For c = 1 To DataSize
+        If image_bit_data(c) = RunPixel Then
             RunCount = RunCount + 1
         Else
             RecordRLERun RunCount
             RunCount = 1
-            RunPixel = Pixels(c)
+            RunPixel = image_bit_data(c)
         End If
     Next c
     
@@ -314,9 +459,8 @@ Private Sub CmdUpdate_Click()
         DataSize = SizeCompressed
     Else
         'Print ("Compression ratio suxx, using raw data")
-        image_bit_data = Pixels
         CompressionType = 0
-        DataSize = SizeRaw
+        'DataSize = SizeRaw
     End If
     
     ' Pad data to multiple of bits_per_frame
@@ -379,11 +523,12 @@ Private Sub CmdUpdate_Click()
     StackFrame make_refresh_frame(PLID)
     
     ' DEBUG
-    'Open "out.txt" For Output As #1
+    'Dim concat As String
+    'Open "d:\out.txt" For Output As #1
     'For fr = 0 To FrameCount - 1
     '    concat = ""
     '    For B = 0 To Frames(fr).Size - 1
-    '        concat = concat & hexpad(Frames(fr).Data(B)) & " "
+    '        concat = concat & HexPad(Frames(fr).Data(B)) & " "
     '    Next B
     '    Print #1, concat
     'Next fr
@@ -464,9 +609,10 @@ Private Sub Form_Load()
     Next c
     ComboPage.ListIndex = 0
     
-    Picture1.Line (0, 0)-(Picture1.Width, Picture1.Height), vbBlack
-    Picture1.Line (Picture1.Width, 0)-(0, Picture1.Height), vbBlack
-    AutoResize
+    PictBox(0).Line (0, 0)-(PictBox(0).Width, PictBox(0).Height), vbBlack
+    PictBox(0).Line (PictBox(0).Width, 0)-(0, PictBox(0).Height), vbBlack
+    ProcessImage
+    UpdateView
     
     Text1.Text = Left(INIRead("ESLTool", "LastPLID", "ESLTool.ini"), 17)
 End Sub
@@ -481,50 +627,195 @@ Private Sub Form_Unload(Cancel As Integer)
     INIWrite "ESLTool", "LastPLID", Text1.Text, "ESLTool.ini"
 End Sub
 
-Function Max(ByVal a As Integer, ByVal b As Integer)
-    If a >= b Then
+Function Max(ByVal a As Integer, ByVal B As Integer)
+    If a >= B Then
         Max = a
     Else
-        Max = b
+        Max = B
     End If
 End Function
 
-Private Sub AutoResize()
-    FrmMain.Width = Max(Picture1.Width + 160, 350) * 15
-    FrmMain.Height = Max(Picture1.Height + 130, 250) * 15
+Private Sub AddRatio(Pixel As RGB, ByRef Err As RGB, ratio As Single)
+    If Pixel.R > -16384 And Pixel.R < 16384 Then Pixel.R = Pixel.R + Err.R * ratio
+    If Pixel.G > -16384 And Pixel.G < 16384 Then Pixel.G = Pixel.G + Err.G * ratio
+    If Pixel.B > -16384 And Pixel.B < 16384 Then Pixel.B = Pixel.B + Err.B * ratio
+End Sub
+
+Public Sub ProcessImage()
+    Dim x As Integer, y As Integer
+    Dim w As Integer, h As Integer
+    Dim PixelsRGB() As RGB
+    Dim PixelErr As RGB
+    Dim CCDC As Long
+    Dim SOB As Long
+    Dim RGBLong As Long
+    Dim S As Long
+    Dim B As Integer, G As Integer, R As Integer
+    Dim dB As Integer, dG As Integer, dR As Integer
+    Dim cbw As Long, cbwr As Long
+    Dim DataSize As Long, i As Long, j As Long
+    
+    Label2.Caption = "Converting image, please wait..."
+    DoEvents
+    
+    w = PictBox(0).Width
+    h = PictBox(0).Height
+    DataSize = CLng(w) * h
+    
+    FrmMain.Width = Max(w + 160, 350) * 15
+    FrmMain.Height = Max(h + 130, 250) * 15
+    
+    CCDC = CreateCompatibleDC(PictBox(0).hdc)
+    SOB = SelectObject(CCDC, PictBox(0).Picture)
+    
+    ReDim PixelsRGB(0 To w - 1, 0 To h - 1)
+    'ReDim PixelsBWR(0 To (w - 1) * 2, 0 To (h - 1) * 2)
+    'ReDim PixelsBWRD(0 To (w - 1) * 2, 0 To (h - 1) * 2)
+    ReDim PixelsBWR(0 To (DataSize * 2))
+    ReDim PixelsBWRD(0 To (DataSize * 2))
+    
+    i = 0
+    j = DataSize
+    For y = 0 To h - 1
+        For x = 0 To w - 1
+            RGBLong& = GetPixel(CCDC, x, y)
+            B = RGBLong \ 65536
+            G = (RGBLong And &HFF00&) \ 256
+            R = RGBLong And &HFF&
+            PixelsRGB(x, y).R = R
+            PixelsRGB(x, y).G = G
+            PixelsRGB(x, y).B = B
+            
+            S = R + G + B
+            
+            ' No dithering pass
+            If S > 3 * 127 Then
+                ' White
+                PixelsBWR(i) = 1
+                PixelsBWR(j) = 1
+                cbw = vbWhite
+                cbwr = vbWhite
+            ElseIf R > (G + B) / 2 Then
+                ' Red
+                PixelsBWR(i) = 0
+                PixelsBWR(j) = 0
+                cbw = vbBlack
+                cbwr = vbRed
+            Else
+                PixelsBWR(i) = 0
+                PixelsBWR(j) = 1
+                cbw = vbBlack
+                cbwr = vbBlack
+            End If
+            
+            PictBox(1).PSet (x, y), cbw
+            PictBox(2).PSet (x, y), cbwr
+            
+            i = i + 1
+            j = j + 1
+        Next x
+    Next y
+    
+    i = 0
+    j = DataSize
+    For y = 0 To h - 1
+        For x = 0 To w - 1
+            B = PixelsRGB(x, y).B
+            G = PixelsRGB(x, y).G
+            R = PixelsRGB(x, y).R
+            
+            S = CLng(R) + G + B
+            
+            If S > 3 * 127 Then
+                ' White
+                PixelErr.R = R - 255
+                PixelErr.G = G - 255
+                PixelErr.B = B - 255
+                PixelsBWRD(i) = 1
+                PixelsBWRD(j) = 1
+                cbw = vbWhite
+                cbwr = vbWhite
+            ElseIf R > (G + B) / 2 Then
+                ' Red
+                PixelErr.R = R - 255
+                PixelErr.G = G
+                PixelErr.B = B
+                PixelsBWRD(i) = 0
+                PixelsBWRD(j) = 0
+                cbw = vbBlack
+                cbwr = vbRed
+            Else
+                PixelErr.R = R
+                PixelErr.G = G
+                PixelErr.B = B
+                PixelsBWRD(i) = 0
+                PixelsBWRD(j) = 1
+                cbw = vbBlack
+                cbwr = vbBlack
+            End If
+            
+            If (x + 1 < w) Then AddRatio PixelsRGB(x + 1, y), PixelErr, 7# / 16
+            If (x - 1 >= 0) And (y + 1 < h) Then AddRatio PixelsRGB(x - 1, y + 1), PixelErr, 3# / 16
+            If (y + 1 < h) Then AddRatio PixelsRGB(x, y + 1), PixelErr, 5# / 16
+            If (x + 1 < w) And (y + 1 < h) Then AddRatio PixelsRGB(x + 1, y + 1), PixelErr, 1# / 16
+            
+            PictBox(3).PSet (x, y), cbw
+            PictBox(4).PSet (x, y), cbwr
+            
+            i = i + 1
+            j = j + 1
+        Next x
+    Next y
+    
+    Label2.Caption = "Ready"
 End Sub
 
 Private Sub menu_openimg_Click()
     On Error GoTo errchk
+    Dim w As Integer, h As Integer, c As Integer
     
     Dim ratio As Single
-    Dim resized As Boolean
+    Dim Resized As Boolean
     
     comdlg.ShowOpen
     
-    Picture1.Picture = LoadPicture(comdlg.FileName)
+    PictBox(0).Picture = LoadPicture(comdlg.FileName)
     
-    ratio = Picture1.Width / Picture1.Height
+    w = PictBox(0).Width
+    h = PictBox(0).Height
+    ratio = w / h
     
-    If Picture1.Width > 640 Then
-        resized = True
-        Picture1.Width = 640
-        Picture1.Height = 640 / ratio
+    If PictBox(0).Width > 640 Then
+        Resized = True
+        w = 640
+        h = 640 / ratio
     End If
-    If Picture1.Height > 480 Then
-        resized = True
-        Picture1.Height = 480
-        Picture1.Width = 480 * ratio
+    If PictBox(0).Height > 480 Then
+        Resized = True
+        h = 480
+        w = 480 * ratio
     End If
     
-    If resized = True Then MsgBox "The image was resized to fit into 640*480.", vbInformation
+    ' Make sure image dimensions are multiples of 4
+    If w Mod 4 <> 0 Or h Mod 4 <> 0 Then
+        MsgBox "The image was resized to make its dimensions multiples of 4.", vbInformation
+        w = (w \ 4) * 4
+        h = (h \ 4) * 4
+    End If
     
-    AutoResize
+    For c = 0 To 4
+        PictBox(c).Width = w
+        PictBox(c).Height = h
+    Next c
+            
+    If Resized = True Then MsgBox "The image was resized to fit into 640*480.", vbInformation
+    
+    ProcessImage
     
     Exit Sub
 errchk:
     ' Ignore cancel
-    If Err.Number <> cdlCancel Then Err.Raise Err.Number
+    If Err.Number <> cdlCancel And Err.Number <> 53 Then Err.Raise Err.Number
 End Sub
 
 Private Sub Timer1_Timer()

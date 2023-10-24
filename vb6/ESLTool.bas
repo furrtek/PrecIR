@@ -10,6 +10,8 @@ End Type
 Public FrameCount As Integer
 Public Frames(1024) As frame_t
 Public Compressed() As Byte
+Public PixelsBWR() As Byte
+Public PixelsBWRD() As Byte
 
 Private Declare Function WritePrivateProfileString Lib "kernel32" _
 Alias "WritePrivateProfileStringA" _
@@ -26,7 +28,20 @@ Alias "GetPrivateProfileStringA" _
                         ByVal lpReturnedString As String, _
                         ByVal nSize As Long, _
                         ByVal lpFileName As String) As Long
-                        
+
+Declare Function GetPixel Lib "gdi32" (ByVal hdc As Long, ByVal x As Long, ByVal y As Long) As Long
+Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As Long) As Long
+Declare Function SelectObject Lib "gdi32" (ByVal hdc As Long, ByVal hObject As Long) As Long
+Declare Function SaveDC Lib "gdi32" (ByVal hdc As Long) As Long
+Declare Function RestoreDC Lib "gdi32" (ByVal hdc As Long, ByVal nSavedDC As Long) As Long
+Declare Function DeleteDC Lib "gdi32" (ByVal hdc As Long) As Long
+
+Public Type RGB
+    R As Single
+    G As Single
+    B As Single
+End Type
+
 Public Function INIWrite(sSection As String, sKeyName As String, sNewString As String, sINIFileName As String) As Boolean
     Call WritePrivateProfileString(sSection, sKeyName, sNewString, sINIFileName)
     INIWrite = (Err.Number = 0)
@@ -122,7 +137,7 @@ Function CRC16(bytes() As Byte, ByVal sz As Integer) As Double
     Dim poly_hi As Byte, poly_lo As Byte
     Dim CRCLSB As Byte, CRCMSB As Byte
     Dim B As Integer, bi As Integer
-    Dim X As Byte
+    Dim x As Byte
     
     'result = 0x8408
     result_hi = &H84
