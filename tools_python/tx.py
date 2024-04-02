@@ -3,6 +3,12 @@
 # See LICENSE
 
 import serial
+import os
+import re
+
+if os.name == 'posix':
+    from serial.tools.list_ports_posix import comports
+
 
 def try_serialport(comport):
 	try:
@@ -42,6 +48,17 @@ def search_esl_blaster():
 			if result[0]:
 				found = True
 				break
+
+	# Mac
+	if found == False:
+		r = re.compile('usbmodem', re.I)
+		for info in comports():
+			comport, desc, hwid = info
+			if r.search(comport):
+				result = try_serialport(comport)
+				if result[0]:
+					found = True
+					break
 
 	if found == False:
 		print("Could not find ESL Blaster.")

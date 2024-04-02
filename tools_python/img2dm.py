@@ -4,7 +4,7 @@
 
 import pr
 import tx
-from imageio import imread
+from imageio.v2 import imread
 import sys
 
 bytes_per_frame = 20
@@ -91,6 +91,7 @@ if arg_count >= 9:
 		pp16 = 0
 
 # Medium size is 208*112
+# Large  size is 296*128
 print("Image is %i*%i in %s mode, please make sure that this suits your ESL's display." % (width, height, "color" if color_mode else "black and white"))
 
 # First pass for black and white
