@@ -32,7 +32,7 @@ The e-paper ones can make cool badges:
 
 ***Which brands of ESLs are compatible ?***
 
-You'll have to guess from the picture above and the page on my website. Hint: there's only one.
+You'll have to guess from the picture above and the page on my website. Hint: it's an anagram of this repo's name.
 
 ***Can my phone/tablet/handheld/IrDA-capable device work as a transmitter ?***
 
