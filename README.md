@@ -32,16 +32,24 @@ The e-paper ones can make cool badges:
 
 ***Which brands of ESLs are compatible ?***
 
-You'll have to guess from the picture and the page on my website. Hint: there's only one.
+You'll have to guess from the picture above and the page on my website. Hint: it's an anagram of this repo's name.
 
 ***Can my phone/tablet/handheld/IrDA-capable device work as a transmitter ?***
 
-No. The carrier is in the MHz range and the symbol timing must be very precise. IrDA controller limitations and OS latency makes it impossible.
+No. The proprietary protocol uses a carrier in the MHz range and the symbol timing must be very precise. IrDA controller limitations and OS latency makes it impossible.
+
+It's possible with an [overclocked Gameboy Color](https://youtu.be/WlDua4l27Do), but who wants to do that ?
+
+***Can this be ported to the Flipper Zero ?***
+
+Yes. However I have very little interest in doing free work for beggars who get excited by remotely opening Tesla charge ports.
+
+All the info you need is here. DIY :)
 
 ***Can I change the display of all ESLs in a store at once ?***
 
 No. For two reasons:
-* Unlike radio waves, optical communication must be line-of-sight. Even if the walls are painted white, reflections from an unique transmitter has no chance of reaching all of the hundreds or thousands of ESLs in a store.
+* Unlike radio waves, optical communication must be line-of-sight. Even from wall and ceiling reflections, an unique transmitter has no chance of reaching all of the hundreds or thousands of ESLs in a store.
 * Each ESL has an unique address which must be specified in update commands. There's no known way to broadcast display updates.
 
 ***Is possession and use of such devices legal ?***
