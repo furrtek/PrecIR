@@ -2,7 +2,7 @@
 
 USB IR transmitter firmware and hardware design files.
 
-Available for purchase on [Tindie](https://www.tindie.com/products/furrtek/esl-blaster).
+Available for purchase on [furrtek.org](https://furrtek.org/shop/).
 
 ## Installation
 
