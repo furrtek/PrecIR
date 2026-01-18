@@ -9,7 +9,7 @@ Thanks to [@david4599](https://github.com/david4599) for infos about color tags.
 ## Hardware
 
 * ir_tx_serial: Simple DIY serial port transmitter, requires an USB-serial adapter.
-* esl_blaster: Compact USB transmitter/remote. Build it yourself or buy one from [Tindie](https://www.tindie.com/products/furrtek/esl-blaster/).
+* esl_blaster: Compact USB transmitter/remote. Build it yourself or buy one from [furrtek.org](https://furrtek.org/shop/).
 
 ## Tools
 
@@ -58,3 +58,4 @@ There's no cracking, exploit, patent or copyright infrigement going on so IMO it
 
 ***My tricolor-capable ESL shows red garbage after an image update***
 Transmit the image in tricolor mode. Transmitting black and white images to tricolor ESLs doesn't clear the red layer.
+
