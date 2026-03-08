@@ -14,10 +14,18 @@ def image_convert(image, color_pass):
 	pixels = []
 	for row in image:
 		for rgb in row:
-			luma = (0.21 * rgb[0] + 0.72 * rgb[1] + 0.07 * rgb[2]) / 255
+			r, g, b = rgb[0] / 255, rgb[1] / 255, rgb[2] / 255
+			is_red = r > 0.5 and g < 0.5 and b < 0.5
+			is_yellow = r > 0.5 and g > 0.5 and b < 0.5
 			if color_pass:
-				pixels.append(0 if luma >= 0.1 and luma < 0.9 else 1)	# 0 codes color (anything mid grey)
+				# 0 = red or yellow, 1 = use first block (black/white)
+				pixels.append(0 if (is_red or is_yellow) else 1)
+			elif is_red and color_mode:
+				pixels.append(1)  # red: first=1, second=0
+			elif is_yellow and color_mode:
+				pixels.append(0)  # yellow: first=0, second=0
 			else:
+				luma = 0.21 * r + 0.72 * g + 0.07 * b
 				pixels.append(0 if luma < 0.5 else 1)	# 0 codes black
 	return pixels
 
